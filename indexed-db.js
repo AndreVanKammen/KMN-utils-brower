@@ -68,7 +68,8 @@ export class IDB {
 
   async startTransaction(storeName) {
     if (this.isUpgrading) await this.waitForUpgrade();
-    if (!this.isOpened) await this._waitOnOpen();
+    // Can be re-opened multiple times so we use while here
+    while (!this.isOpened) await this._waitOnOpen();
     // Auto upgrade if store is missing
     if (!this.database.objectStoreNames.contains(storeName)) {
       if (this._storeNames.indexOf(storeName) === -1) {
