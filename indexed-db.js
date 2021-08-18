@@ -1,3 +1,5 @@
+import defer from "../KMN-utils.js/defer.js";
+
 const defaultObjectStoreName = 'default-object-store';
 export class IDB {
   constructor (name) {
@@ -52,11 +54,11 @@ export class IDB {
     this.database.close();
     this.database = undefined;
     return new Promise((resolve) => {
-      setTimeout(async () => {
+      defer(async () => {
         this._openDB(lastVersionNr + 1);
         await this._waitOnOpen();
         resolve();
-      }, 0);
+      });
     })
   }
 
@@ -66,34 +68,48 @@ export class IDB {
     })
   }
 
+  registerStoreName(storeName) {
+    if (this._storeNames.indexOf(storeName) === -1) {
+      this._storeNames.push(storeName);
+    }
+  }
+
+  async checkUpdateNeeded() {
+    while (!this.isOpened) await this._waitOnOpen();
+    for (let storeName of this._storeNames) {
+      if (!this.database.objectStoreNames.contains(storeName)) {
+        this.isUpgrading = true;
+        this.isOpened = false;
+        // Check if transactions open
+        if (this._openStores.length === 0) {
+          await this._doUpgrade();
+          this.isUpgrading = false;
+        } else {
+          // TODO: Check if this can give deadlocks
+          // Wait until all transactions are finished
+          await new Promise((resolve) => {
+            this._upgradeResolve = () => this._doUpgrade().then(resolve);
+          }).finally(
+            () => {
+              // Signal waiting requests
+              this.isUpgrading = false;
+              this._upgradeWaitResolves.forEach(resolve => resolve());
+              this._upgradeWaitResolves = [];
+          });
+        }
+        return;
+      }
+    }
+  }
+
   async startTransaction(storeName) {
+    this.registerStoreName(storeName);
     if (this.isUpgrading) await this.waitForUpgrade();
     // Can be re-opened multiple times so we use while here
     while (!this.isOpened) await this._waitOnOpen();
     // Auto upgrade if store is missing
     if (!this.database.objectStoreNames.contains(storeName)) {
-      if (this._storeNames.indexOf(storeName) === -1) {
-        this._storeNames.push(storeName);
-      }
-      this.isUpgrading = true;
-      this.isOpened = false;
-      // Check if transactions open
-      if (this._openStores.length === 0) {
-        await this._doUpgrade();
-        this.isUpgrading = false;
-      } else {
-        // TODO: Check if this can give deadlocks
-        // Wait until all transactions are finished
-        await new Promise((resolve) => {
-          this._upgradeResolve = () => this._doUpgrade().then(resolve);
-        }).finally(
-          () => {
-            // Signal waiting requests
-            this.isUpgrading = false;
-            this._upgradeWaitResolves.forEach(resolve => resolve());
-            this._upgradeWaitResolves = [];
-        });
-      }
+      await this.checkUpdateNeeded();
     }
     let store = this.database.transaction(storeName, 'readwrite').objectStore(storeName);
     this._openStores.push(store);
