@@ -49,6 +49,15 @@ class PanZoomControl {
         this.onKeyUp(this.mouseX, this.mouseY);
       }
     });
+    this.element.addEventListener('click', function (e) {
+      if (e.ctrlKey) return;
+      e.preventDefault();
+    }, false);
+
+    this.element.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+    }, false);
+
     this.element.onmouseenter = (event) => {
       mouseInside = true;
     }
@@ -100,6 +109,7 @@ class PanZoomControl {
           mouseDown = true;
           mouseDownTrackPosX = this.xOffset;
           mouseDownTrackPosY = this.yOffset;
+          event.preventDefault();
         }
         // console.log('mouseDown: ',mouseDownX,',',mouseDownY);
         // @ts-ignore Yes it does exist!!!
