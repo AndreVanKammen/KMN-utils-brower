@@ -1,3 +1,5 @@
+import { beforeAnimationFrame } from "./animation-frame.js";
+
 const defaultOptions = {
   onChange: () => {},
   minYScale: 0.001,
@@ -12,9 +14,16 @@ const defaultOptions = {
 
   includeSizeInMaxPos: true
 }
+/** @typedef {{
+ *   handleClick?: (x,y) => boolean,
+ *   handleMove?: (x,y) => boolean,
+ *   handleDown?: (x,y) => boolean,
+ *   handleUp?: (x,y) => boolean,
+ *   handleKey?: (x,y,up) => boolean,
+ *  }} ControlHandler 
+ */
 
 class PanZoomControl {
-
   /**
    * @param {HTMLElement} element 
    * @param {*} options 
@@ -24,12 +33,57 @@ class PanZoomControl {
     options = options || {};
     this.options = { ...defaultOptions, ...options }
 
-    this.onClick = (x,y) => {};
-    this.onMove = (x,y) => {};
-    this.onDown = (x,y) => true;
-    this.onUp = (x,y) => {};
-    this.onKeyDown = (x, y) => {};
-    this.onKeyUp = (x, y) => {};
+    /* @type {Array<ControlHandler>) */
+    this.handlers = [];
+
+    this.onClick = (x, y) => {
+      for (let h of this.handlers) {
+        if (h.handleClick(x, y)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    this.onMove = (x, y) => {
+      for (let h of this.handlers) {
+        if (h.handleMove && h.handleMove(x, y)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    this.onDown = (x, y) => {
+      for (let h of this.handlers) {
+        if (h.handleDown && h.handleDown(x, y)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    this.onUp = (x, y) => {
+      for (let h of this.handlers) {
+        if (h.handleUp && h.handleUp(x, y)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    this.onKeyDown = (x, y) => {
+      for (let h of this.handlers) {
+        if (h.handleKey && h.handleKey(x, y, false)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    this.onKeyUp = (x, y) => {
+      for (let h of this.handlers) {
+        if (h.handleKey && h.handleKey(x, y, true)) {
+          return true;
+        }
+      }
+      return false;
+    };
 
     this.clear();
 
@@ -105,7 +159,7 @@ class PanZoomControl {
         mouseDownX = event.offsetX / this.element.clientWidth;
         mouseDownY = 1.0 - (event.offsetY / this.element.clientHeight);
         mouseMoved = false;
-        if (this.onDown(this.mouseX, this.mouseY)) {
+        if (!this.onDown(this.mouseX, this.mouseY)) {
           mouseDown = true;
           mouseDownTrackPosX = this.xOffset;
           mouseDownTrackPosY = this.yOffset;
@@ -149,6 +203,19 @@ class PanZoomControl {
         }
       };
     }
+
+    this.updateSmoothBound = this.updateSmooth.bind(this);
+    beforeAnimationFrame(this.updateSmoothBound);
+  }
+
+
+  /**
+   * Adds a control handler to be used for handling the controls
+   * @param {ControlHandler} controlHandler 
+   */
+  addHandler(controlHandler) {
+    // Last add 1st handle because it's on top
+    this.handlers.unshift(controlHandler)
   }
 
   restrictPos() {
@@ -165,9 +232,23 @@ class PanZoomControl {
   clear() {
     this.xScale = 1.0;
     this.yScale = 1.0;
-
     this.xOffset = 0.0;
     this.yOffset = 0.0;
+
+    this.xScaleSmooth = 1.0;
+    this.yScaleSmooth = 1.0;
+    this.xOffsetSmooth = 0.0;
+    this.yOffsetSmooth = 0.0;
+  }
+
+  updateSmooth() {
+    // TODO correct for scale and offset in one run it now shifts left right on zoom
+    this.xScaleSmooth = this.xScaleSmooth * 0.9 + 0.1 * this.xScale;
+    this.yScaleSmooth = this.yScaleSmooth * 0.9 + 0.1 * this.yScale;
+    this.xOffsetSmooth = this.xOffsetSmooth * 0.9 + 0.1 * this.xOffset;
+    this.yOffsetSmooth = this.yOffsetSmooth * 0.9 + 0.1 * this.yOffset;
+
+    beforeAnimationFrame(this.updateSmoothBound);
   }
 
   dispose() {
