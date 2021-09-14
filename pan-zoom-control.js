@@ -35,6 +35,10 @@ class PanZoomControl {
 
     /* @type {Array<ControlHandler>) */
     this.handlers = [];
+    this.lastTime = 0.0;
+    this.zoomCenterX = 0.5;
+    this.zoomCenterY = 0.5;
+    this.isPanning = false;
 
     this.onClick = (x, y) => {
       for (let h of this.handlers) {
@@ -127,7 +131,19 @@ class PanZoomControl {
       let oldScaleY = this.yScale;
       if (event.offsetX > 32 && !event.altKey) {
         // this.autoScaleX = false;
-        this.xScale *= (event.deltaY > 0) ? 0.9 : (1 / 0.9);
+        // console.log(event.deltaY);
+        // console.log(event.deltaMode);
+        let deltaY = event.deltaY;
+        if (event.deltaMode > 0) {
+          // Lines
+          deltaY *= 16;
+        }
+        if (event.deltaMode > 1) {
+          // Pages
+          deltaY *= 40;
+        }
+        // this.xScale *= (event.deltaY > 0) ? 0.9 : (1 / 0.9);
+        this.xScale *= (800 - deltaY) / 800;//  > 0) ? 0.9 : (1 / 0.9);
         this.xScale = Math.max(this.options.minXScale, Math.min(this.options.maxXScale, this.xScale));
       }
       if (event.offsetY > 32 && !event.shiftKey) {
@@ -136,8 +152,10 @@ class PanZoomControl {
         this.yScale *= (event.deltaY > 0) ? 0.9 : (1 / 0.9);
         this.yScale = Math.max(this.options.minYScale, Math.min(this.options.maxYScale, this.yScale));
       }
-      this.xOffset += mouseX / oldScaleX - mouseX / this.xScale;
-      this.yOffset += mouseY / oldScaleY - mouseY / this.yScale;
+      this.zoomCenterX = mouseX;
+      this.zoomCenterY = mouseY;
+      // this.xOffset += mouseX / oldScaleX - mouseX / this.xScale;
+      // this.yOffset += mouseY / oldScaleY - mouseY / this.yScale;
       this.restrictPos();
       this.options.onChange();
       // console.log('mouseScale: ',this.xScale,',',this.yScale, ' ', mouseX,',',mouseY);
@@ -161,6 +179,7 @@ class PanZoomControl {
         mouseMoved = false;
         if (!this.onDown(this.mouseX, this.mouseY)) {
           mouseDown = true;
+          this.isPanning = true;
           mouseDownTrackPosX = this.xOffset;
           mouseDownTrackPosY = this.yOffset;
           event.preventDefault();
@@ -197,6 +216,7 @@ class PanZoomControl {
         this.mouseX = this.xOffset + (event.offsetX / this.element.clientWidth) / this.xScale;
         this.mouseY = this.yOffset + (1.0 - (event.offsetY / this.element.clientHeight)) / this.yScale;
         this.onUp(this.mouseX, this.mouseY);
+        this.isPanning = false;
         mouseDown = false;
         if (!mouseMoved) {
           this.onClick(this.mouseX, this.mouseY);
@@ -241,13 +261,27 @@ class PanZoomControl {
     this.yOffsetSmooth = 0.0;
   }
 
-  updateSmooth() {
+  updateSmooth(time) {
+    let deltaTime = time - this.lastTime;
+    this.lastTime = time;
+    let factor = Math.pow(0.9, deltaTime / 16.66);
+    let n_factor = 1.0 - factor;
     // TODO correct for scale and offset in one run it now shifts left right on zoom
-    this.xScaleSmooth = this.xScaleSmooth * 0.9 + 0.1 * this.xScale;
-    this.yScaleSmooth = this.yScaleSmooth * 0.9 + 0.1 * this.yScale;
-    this.xOffsetSmooth = this.xOffsetSmooth * 0.9 + 0.1 * this.xOffset;
-    this.yOffsetSmooth = this.yOffsetSmooth * 0.9 + 0.1 * this.yOffset;
+    let oldScaleX = this.xScaleSmooth;
+    let oldScaleY = this.yScaleSmooth;
+    this.xScaleSmooth = this.xScaleSmooth * factor + n_factor * this.xScale;
+    this.yScaleSmooth = this.yScaleSmooth * factor + n_factor * this.yScale;
 
+    this.xOffset += this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth;
+    this.yOffset += this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth;
+    
+    this.xOffsetSmooth = this.xOffsetSmooth * factor + n_factor * this.xOffset;
+    this.yOffsetSmooth = this.yOffsetSmooth * factor + n_factor * this.yOffset;
+
+    this.xOffsetSmooth += this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth;
+    this.yOffsetSmooth += this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth;
+
+    this.restrictPos();
     beforeAnimationFrame(this.updateSmoothBound);
   }
 
