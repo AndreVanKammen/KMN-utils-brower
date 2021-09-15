@@ -39,6 +39,8 @@ class PanZoomControl {
     this.zoomCenterX = 0.5;
     this.zoomCenterY = 0.5;
     this.isPanning = false;
+    this.easeFactor = 0.6;
+    this.zoomSpeed = 5.0;
 
     this.onClick = (x, y) => {
       for (let h of this.handlers) {
@@ -129,33 +131,33 @@ class PanZoomControl {
       let mouseY = 1.0 - (event.offsetY / this.element.clientHeight);
       let oldScaleX = this.xScale;
       let oldScaleY = this.yScale;
+      let deltaY = event.deltaY;
+      if (event.deltaMode > 0) {
+        // Lines
+        deltaY *= 16;
+      }
+      if (event.deltaMode > 1) {
+        // Pages
+        deltaY *= 40;
+      }
       if (event.offsetX > 32 && !event.altKey) {
         // this.autoScaleX = false;
         // console.log(event.deltaY);
         // console.log(event.deltaMode);
-        let deltaY = event.deltaY;
-        if (event.deltaMode > 0) {
-          // Lines
-          deltaY *= 16;
-        }
-        if (event.deltaMode > 1) {
-          // Pages
-          deltaY *= 40;
-        }
         // this.xScale *= (event.deltaY > 0) ? 0.9 : (1 / 0.9);
-        this.xScale *= (800 - deltaY) / 800;//  > 0) ? 0.9 : (1 / 0.9);
+        this.xScale *= (1000 - deltaY * this.zoomSpeed) / 1000;//  > 0) ? 0.9 : (1 / 0.9);
         this.xScale = Math.max(this.options.minXScale, Math.min(this.options.maxXScale, this.xScale));
       }
       if (event.offsetY > 32 && !event.shiftKey) {
         // this.autoScaleY = false;
         // deltaY has unusable different units depending on deltaMode, old wheelData was better but firfox doesn't support it
-        this.yScale *= (event.deltaY > 0) ? 0.9 : (1 / 0.9);
+        this.yScale *= (1000 - deltaY * this.zoomSpeed) / 1000; // (event.deltaY > 0) ? 0.9 : (1 / 0.9);
         this.yScale = Math.max(this.options.minYScale, Math.min(this.options.maxYScale, this.yScale));
       }
       this.zoomCenterX = mouseX;
       this.zoomCenterY = mouseY;
-      // this.xOffset += mouseX / oldScaleX - mouseX / this.xScale;
-      // this.yOffset += mouseY / oldScaleY - mouseY / this.yScale;
+      this.xOffset += mouseX / oldScaleX - mouseX / this.xScale;
+      this.yOffset += mouseY / oldScaleY - mouseY / this.yScale;
       this.restrictPos();
       this.options.onChange();
       // console.log('mouseScale: ',this.xScale,',',this.yScale, ' ', mouseX,',',mouseY);
@@ -264,7 +266,7 @@ class PanZoomControl {
   updateSmooth(time) {
     let deltaTime = time - this.lastTime;
     this.lastTime = time;
-    let factor = Math.pow(0.9, deltaTime / 16.66);
+    let factor = Math.pow(this.easeFactor, deltaTime / 16.66);
     let n_factor = 1.0 - factor;
     // TODO correct for scale and offset in one run it now shifts left right on zoom
     let oldScaleX = this.xScaleSmooth;
@@ -272,14 +274,14 @@ class PanZoomControl {
     this.xScaleSmooth = this.xScaleSmooth * factor + n_factor * this.xScale;
     this.yScaleSmooth = this.yScaleSmooth * factor + n_factor * this.yScale;
 
-    this.xOffset += this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth;
-    this.yOffset += this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth;
+    // this.xOffset += this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth;
+    // this.yOffset += this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth;
     
-    this.xOffsetSmooth = this.xOffsetSmooth * factor + n_factor * this.xOffset;
-    this.yOffsetSmooth = this.yOffsetSmooth * factor + n_factor * this.yOffset;
+    this.xOffsetSmooth = (this.xOffsetSmooth || 0.0) * factor + n_factor * this.xOffset;
+    this.yOffsetSmooth = (this.yOffsetSmooth || 0.0) * factor + n_factor * this.yOffset;
 
-    this.xOffsetSmooth += this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth;
-    this.yOffsetSmooth += this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth;
+    // this.xOffsetSmooth += 0.33 * (this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth);
+    // this.yOffsetSmooth += 0.33 * (this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth);
 
     this.restrictPos();
     beforeAnimationFrame(this.updateSmoothBound);
