@@ -42,6 +42,8 @@ class PanZoomControl {
     this.easeFactor = 0.6;
     this.zoomSpeed = 5.0;
 
+    this.leftScrollMargin = this.options.maxYScale === this.options.minYScale ? 0.0 : 32.0;
+
     this.onClick = (x, y) => {
       for (let h of this.handlers) {
         if (h.handleClick(x, y)) {
@@ -140,7 +142,7 @@ class PanZoomControl {
         // Pages
         deltaY *= 40;
       }
-      if (event.offsetX > 32 && !event.altKey) {
+      if (event.offsetX > this.leftScrollMargin && !event.altKey) {
         // this.autoScaleX = false;
         // console.log(event.deltaY);
         // console.log(event.deltaMode);
