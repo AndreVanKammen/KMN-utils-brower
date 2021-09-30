@@ -7,6 +7,8 @@ class PanelBase {
     this.options = { ...defaultOptions, ...options };
     this.parentElement = null;
     this.isVisible = false;
+    this.preferredWidth = undefined;
+    this.preferredHeight = undefined;
   }
   get DOMInitialized() {
     return !!this.parentElement;
@@ -35,6 +37,7 @@ class PanelBase {
   show() {
     this.isVisible = true;
     this.updateHiddenClass();
+    return true;
     // console.log('show: ',this.__proto__.constructor.name);
   }
 

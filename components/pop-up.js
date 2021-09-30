@@ -98,6 +98,14 @@ class PopUp {
     }
     this.parentPanel = this.popArea.$el({cls:'popupContent'});
     this.parentPanel.$setVisible(false);
+
+    if (!isNaN(this.panel.preferredWidth)) {
+      this.parentPanel.style.width = this.panel.preferredWidth + 'px';
+    }
+    if (this.panel.preferredHeight) { 
+      this.parentPanel.style.height = this.panel.preferredHeight + 'px';
+    }
+
     this.header = this.parentPanel.$el({cls:'popupHeader'});
     this.title = this.header.$el({cls:'popupTitle'});
     this.addButton = this.header.$el({ cls: "close" });
@@ -113,7 +121,7 @@ class PopUp {
     this.title.innerText = str;
     this.popArea.$setVisible(true);
     this.parentPanel.$setVisible(true);
-    this.panel.show();
+    return this.panel.show();
   }
 
   hide() {
