@@ -23,18 +23,47 @@ const defaultOptions = {
  *  }} ControlHandler 
  */
 
-class PanZoomControl {
+export class PanZoomBase {
+  constructor() {
+    this.xScale = 1.0;
+    this.yScale = 1.0;
+
+    this.xScaleSmooth = 1.0;
+    this.yScaleSmooth = 1.0;
+
+    this.xOffset = 0.0;
+    this.yOffset = 0.0;
+    
+    this.xOffsetSmooth = 0.0;
+    this.yOffsetSmooth = 0.0;
+
+    /* @type {Array<ControlHandler>) */
+    this.handlers = [];
+  }
+
+  /**
+   * Adds a control handler to be used for handling the controls
+   * @param {ControlHandler} controlHandler 
+   */
+  addHandler(controlHandler) {
+    // Last add 1st handle because it's on top
+    this.handlers.unshift(controlHandler)
+  }
+
+}
+
+class PanZoomControl extends PanZoomBase {
   /**
    * @param {HTMLElement} element 
    * @param {*} options 
    */
-  constructor (element, options) {
+  constructor(element, options) {
+    super();
+
     this.element = element;
     options = options || {};
     this.options = { ...defaultOptions, ...options }
 
-    /* @type {Array<ControlHandler>) */
-    this.handlers = [];
     this.lastTime = 0.0;
     this.zoomCenterX = 0.5;
     this.zoomCenterY = 0.5;
@@ -230,16 +259,6 @@ class PanZoomControl {
 
     this.updateSmoothBound = this.updateSmooth.bind(this);
     beforeAnimationFrame(this.updateSmoothBound);
-  }
-
-
-  /**
-   * Adds a control handler to be used for handling the controls
-   * @param {ControlHandler} controlHandler 
-   */
-  addHandler(controlHandler) {
-    // Last add 1st handle because it's on top
-    this.handlers.unshift(controlHandler)
   }
 
   restrictPos() {
