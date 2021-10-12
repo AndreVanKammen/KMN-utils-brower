@@ -36,6 +36,11 @@ export class PanZoomBase {
     
     this.xOffsetSmooth = 0.0;
     this.yOffsetSmooth = 0.0;
+    
+    this.easeFactor = 0.6;
+    this.lastTime = 0.0;
+
+    this.event = null;
 
     /* @type {Array<ControlHandler>) */
     this.handlers = [];
@@ -89,6 +94,8 @@ export class PanZoomBase {
       return false;
     };
 
+    this.updateSmoothBound = this.updateSmooth.bind(this);
+    beforeAnimationFrame(this.updateSmoothBound);
   }
 
   /**
@@ -100,6 +107,32 @@ export class PanZoomBase {
     this.handlers.unshift(controlHandler)
   }
 
+  updateSmooth(time) {
+    let deltaTime = time - this.lastTime;
+    this.lastTime = time;
+    let factor = Math.pow(this.easeFactor, deltaTime / 16.66);
+    let n_factor = 1.0 - factor;
+    // TODO correct for scale and offset in one run it now shifts left right on zoom
+    let oldScaleX = this.xScaleSmooth;
+    let oldScaleY = this.yScaleSmooth;
+    this.xScaleSmooth = this.xScaleSmooth * factor + n_factor * this.xScale;
+    this.yScaleSmooth = this.yScaleSmooth * factor + n_factor * this.yScale;
+
+    // this.xOffset += this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth;
+    // this.yOffset += this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth;
+    
+    this.xOffsetSmooth = (this.xOffsetSmooth || 0.0) * factor + n_factor * this.xOffset;
+    this.yOffsetSmooth = (this.yOffsetSmooth || 0.0) * factor + n_factor * this.yOffset;
+
+    // this.xOffsetSmooth += 0.33 * (this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth);
+    // this.yOffsetSmooth += 0.33 * (this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth);
+    // this.restrictPos();
+    beforeAnimationFrame(this.updateSmoothBound);
+  }
+
+  restrictPos() {
+    
+  }
 }
 export class PanZoomChild extends PanZoomBase {
   /**
@@ -115,19 +148,24 @@ export class PanZoomChild extends PanZoomBase {
     this.myYOffset = 0.0; // My offset within parentHeight
     this.parentWidth = 10.0;
     this.parentHeight = 2.0;
+    this.widthFactor = 1.0;
+    this.heightFactor = 1.0;
   }
 
-  update() {
-    let widthFactor = this.myWidth / this.parentWidth;
-    let heightFactor = this.myHeight / this.parentHeight;  // 2 /4 = 0.5
-    this.xOffset = this.parent.xOffsetSmooth / widthFactor- this.myXOffset / this.myWidth;// / this.parentWidth;
-    this.xScale = this.parent.xScaleSmooth * widthFactor;
+  updateSmooth(time) {
+  // update() {
+    this.widthFactor = this.myWidth / this.parentWidth;
+    this.heightFactor = this.myHeight / this.parentHeight;  // 2 /4 = 0.5
+    this.xOffset = this.parent.xOffsetSmooth / this.widthFactor- this.myXOffset / this.myWidth;// / this.parentWidth;
+    this.xScale = this.parent.xScaleSmooth * this.widthFactor;
     this.yOffset = this.parent.yOffsetSmooth - this.myYOffset;
-    this.yScale = this.parent.yScaleSmooth * heightFactor;
-    this.xOffsetSmooth = this.xOffset;
-    this.xScaleSmooth = this.xScale;
-    this.yOffsetSmooth = this.yOffset;
-    this.yScaleSmooth = this.yScale;
+    this.yScale = this.parent.yScaleSmooth * this.heightFactor;
+    super.updateSmooth(time);
+    // this.xOffsetSmooth = this.xOffset;
+    // this.xScaleSmooth = this.xScale;
+    // this.yOffsetSmooth = this.yOffset;
+    // this.yScaleSmooth = this.yScale;
+    // beforeAnimationFrame(this.updateSmoothBound);
   }
 }
 
@@ -143,11 +181,9 @@ export default class PanZoomControl extends PanZoomBase {
     options = options || {};
     this.options = { ...defaultOptions, ...options }
 
-    this.lastTime = 0.0;
     this.zoomCenterX = 0.5;
     this.zoomCenterY = 0.5;
     this.isPanning = false;
-    this.easeFactor = 0.6;
     this.zoomSpeed = 5.0;
 
     this.leftScrollMargin = this.options.maxYScale === this.options.minYScale ? 0.0 : 32.0;
@@ -288,9 +324,6 @@ export default class PanZoomControl extends PanZoomBase {
         }
       };
     }
-
-    this.updateSmoothBound = this.updateSmooth.bind(this);
-    beforeAnimationFrame(this.updateSmoothBound);
   }
 
   restrictPos() {
@@ -316,31 +349,77 @@ export default class PanZoomControl extends PanZoomBase {
     this.yOffsetSmooth = 0.0;
   }
 
-  updateSmooth(time) {
-    let deltaTime = time - this.lastTime;
-    this.lastTime = time;
-    let factor = Math.pow(this.easeFactor, deltaTime / 16.66);
-    let n_factor = 1.0 - factor;
-    // TODO correct for scale and offset in one run it now shifts left right on zoom
-    let oldScaleX = this.xScaleSmooth;
-    let oldScaleY = this.yScaleSmooth;
-    this.xScaleSmooth = this.xScaleSmooth * factor + n_factor * this.xScale;
-    this.yScaleSmooth = this.yScaleSmooth * factor + n_factor * this.yScale;
-
-    // this.xOffset += this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth;
-    // this.yOffset += this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth;
-    
-    this.xOffsetSmooth = (this.xOffsetSmooth || 0.0) * factor + n_factor * this.xOffset;
-    this.yOffsetSmooth = (this.yOffsetSmooth || 0.0) * factor + n_factor * this.yOffset;
-
-    // this.xOffsetSmooth += 0.33 * (this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth);
-    // this.yOffsetSmooth += 0.33 * (this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth);
-
-    this.restrictPos();
-    beforeAnimationFrame(this.updateSmoothBound);
-  }
-
   dispose() {
     // TODO: unbind all events
+  }
+}
+export class PanZoomParent extends PanZoomControl {
+  /**
+   * @param {HTMLElement} element 
+   * @param {*} options 
+   */
+  constructor(element, options) {
+    super(element, options);
+    /** @type {PanZoomChild[]} */
+    this.children = [];
+
+    const eventHandler = (m1, m2, x, y) => {
+      let childHandlers = this.getChilds(x, y);
+      for (let childHandler of childHandlers) {
+        childHandler.child.event = this.event;
+        if (m1(childHandler.child, childHandler.x, childHandler.y)) {
+          return true;
+        }
+      }
+      for (let h of this.handlers) {
+        if (m2(h, x, y)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    this.onClick = eventHandler.bind(
+      this,
+      (c, x, y) => c.onClick(x, y),
+      (h, x, y) => h.handleClick && h.handleClick(x, y));
+    
+    this.onMove = eventHandler.bind(
+      this,
+      (c, x, y) => c.onMove(x, y),
+      (h, x, y) => h.handleMove && h.handleMove(x, y));
+    
+    this.onDown = eventHandler.bind(
+      this,
+      (c, x, y) => c.onDown(x, y),
+      (h, x, y) => h.handleDown && h.handleDown(x, y));
+    
+    this.onUp = eventHandler.bind(
+      this,
+      (c, x, y) => c.onUp(x, y),
+      (h, x, y) => h.handleUp && h.handleUp(x, y));
+    
+    this.onKeyDown = eventHandler.bind(
+      this,
+      (c, x, y) => c.onKeyDown(x, y),
+      (h, x, y) => h.handleKey && h.handleKey(x, y, false));
+    
+    this.onKeyUp = eventHandler.bind(
+      this,
+      (c, x, y) => c.onKeyUp(x, y),
+      (h, x, y) => h.handleKey && h.handleKey(x, y, true));
+  }
+
+  getChilds(px, py) {
+    let result = [];
+    for (let child of this.children) {
+      let x = (px - (child.myXOffset / child.parentWidth)) / child.widthFactor;
+      let y = py / child.heightFactor - child.myYOffset;
+      if (x > -0.01 && x < 1.01 &&
+        y > -0.01 && y < 1.01) {
+        result.push({ child, x, y });
+      }
+      // }
+    }
+    return result;
   }
 }
