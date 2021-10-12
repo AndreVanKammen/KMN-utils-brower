@@ -45,58 +45,29 @@ export class PanZoomBase {
     /* @type {Array<ControlHandler>) */
     this.handlers = [];
 
-    this.onClick = (x, y) => {
-      for (let h of this.handlers) {
-        if (h.handleClick(x, y)) {
-          return true;
-        }
-      }
-      return false;
-    };
-    this.onMove = (x, y) => {
-      for (let h of this.handlers) {
-        if (h.handleMove && h.handleMove(x, y)) {
-          return true;
-        }
-      }
-      return false;
-    };
-    this.onDown = (x, y) => {
-      for (let h of this.handlers) {
-        if (h.handleDown && h.handleDown(x, y)) {
-          return true;
-        }
-      }
-      return false;
-    };
-    this.onUp = (x, y) => {
-      for (let h of this.handlers) {
-        if (h.handleUp && h.handleUp(x, y)) {
-          return true;
-        }
-      }
-      return false;
-    };
-    this.onKeyDown = (x, y) => {
-      for (let h of this.handlers) {
-        if (h.handleKey && h.handleKey(x, y, false)) {
-          return true;
-        }
-      }
-      return false;
-    };
-    this.onKeyUp = (x, y) => {
-      for (let h of this.handlers) {
-        if (h.handleKey && h.handleKey(x, y, true)) {
-          return true;
-        }
-      }
-      return false;
-    };
+    this.onClick = this.eventHandler.bind(this, (h, x, y) => h.handleClick && h.handleClick(x, y));
+    this.onMove = this.eventHandler.bind(this, (h, x, y) => h.handleMove && h.handleMove(x, y));
+    this.onLeave = this.eventHandler.bind(this, (h, x, y) => h.handleLeave && h.handleLeave(x, y));
+    this.onDown = this.eventHandler.bind(this, (h, x, y) => h.handleDown && h.handleDown(x, y));
+    this.onUp = this.eventHandler.bind(this, (h, x, y) => h.handleUp && h.handleUp(x, y));
+    this.onKeyDown = this.eventHandler.bind(this, (h, x, y) => h.handleKey && h.handleKey(x, y, false));
+    this.onKeyUp = this.eventHandler.bind(this, (h, x, y) => h.handleKey && h.handleKey(x, y, true));
+
+    this.pointerDown = false;
+    this.pointerInside = false;
 
     this.updateSmoothBound = this.updateSmooth.bind(this);
     beforeAnimationFrame(this.updateSmoothBound);
   }
+
+  eventHandler(m1, x, y)  {
+    for (let h of this.handlers) {
+      if (m1(h, x, y)) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   /**
    * Adds a control handler to be used for handling the controls
@@ -275,6 +246,7 @@ export default class PanZoomControl extends PanZoomBase {
         this.event = event;
         this.mouseX = this.xOffset + (event.offsetX / this.element.clientWidth) / this.xScale;
         this.mouseY = this.yOffset + (1.0 - (event.offsetY / this.element.clientHeight)) / this.yScale;
+        this.pointerDown = true;
         mouseDownX = event.offsetX / this.element.clientWidth;
         mouseDownY = 1.0 - (event.offsetY / this.element.clientHeight);
         mouseMoved = false;
@@ -290,10 +262,21 @@ export default class PanZoomControl extends PanZoomBase {
         event.target.setPointerCapture(event.pointerId);
       };
 
+      this.element.onpointerleave = (event) => {
+        this.event = event;
+        this.mouseX = this.xOffset + (event.offsetX / this.element.clientWidth) / this.xScale;
+        this.mouseY = this.yOffset + (1.0 - (event.offsetY / this.element.clientHeight)) / this.yScale;
+        if (this.pointerInside) {
+          this.pointerInside = false;
+          this.onLeave(this.mouseX, this.mouseY);
+        }
+      }
+
       this.element.onpointermove = (event) => {
         this.event = event;
         this.mouseX = this.xOffset + (event.offsetX / this.element.clientWidth) / this.xScale;
         this.mouseY = this.yOffset + (1.0 - (event.offsetY / this.element.clientHeight)) / this.yScale;
+        this.pointerInside = true;
         this.onMove(this.mouseX, this.mouseY);
         let newMouseX = event.offsetX / this.element.clientWidth;
         let newMouseY = 1.0 - (event.offsetY / this.element.clientHeight);
@@ -322,6 +305,7 @@ export default class PanZoomControl extends PanZoomBase {
         if (!mouseMoved) {
           this.onClick(this.mouseX, this.mouseY);
         }
+        this.pointerDown = false;
       };
     }
   }
@@ -371,12 +355,7 @@ export class PanZoomParent extends PanZoomControl {
           return true;
         }
       }
-      for (let h of this.handlers) {
-        if (m2(h, x, y)) {
-          return true;
-        }
-      }
-      return false;
+      return this.eventHandler(m2, x, y);
     };
     this.onClick = eventHandler.bind(
       this,
@@ -414,9 +393,18 @@ export class PanZoomParent extends PanZoomControl {
     for (let child of this.children) {
       let x = (px - (child.myXOffset / child.parentWidth)) / child.widthFactor;
       let y = py / child.heightFactor - child.myYOffset;
-      if (x > -0.01 && x < 1.01 &&
-        y > -0.01 && y < 1.01) {
+      if ((x > -0.01 && x < 1.01 &&
+        y > -0.01 && y < 1.01) || child.pointerDown) {
         result.push({ child, x, y });
+        child.pointerDown = this.pointerDown;
+        if (!child.pointerInside) {
+          child.pointerInside = true;
+        }
+      } else {
+        if (child.pointerInside) {
+          child.onLeave(x, y);
+          child.pointerInside = false;
+        }
       }
       // }
     }
