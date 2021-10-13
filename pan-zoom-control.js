@@ -264,11 +264,9 @@ export default class PanZoomControl extends PanZoomBase {
 
       this.element.onpointerleave = (event) => {
         this.event = event;
-        this.mouseX = this.xOffset + (event.offsetX / this.element.clientWidth) / this.xScale;
-        this.mouseY = this.yOffset + (1.0 - (event.offsetY / this.element.clientHeight)) / this.yScale;
         if (this.pointerInside) {
           this.pointerInside = false;
-          this.onLeave(this.mouseX, this.mouseY);
+          this.onLeave(-1,-1);
         }
       }
 
@@ -366,6 +364,11 @@ export class PanZoomParent extends PanZoomControl {
       this,
       (c, x, y) => c.onMove(x, y),
       (h, x, y) => h.handleMove && h.handleMove(x, y));
+    
+    this.onLeave = eventHandler.bind(
+      this,
+      (c, x, y) => c.onLeave(x, y),
+      (h, x, y) => h.handleLeave && h.handleLeave(x, y));
     
     this.onDown = eventHandler.bind(
       this,
