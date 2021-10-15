@@ -40,6 +40,8 @@ export class PanZoomBase {
     this.easeFactor = 0.6;
     this.lastTime = 0.0;
 
+    this.isPanning = false;
+
     this.event = null;
 
     /* @type {Array<ControlHandler>) */
@@ -152,9 +154,8 @@ export default class PanZoomControl extends PanZoomBase {
     options = options || {};
     this.options = { ...defaultOptions, ...options }
 
-    this.zoomCenterX = 0.5;
-    this.zoomCenterY = 0.5;
-    this.isPanning = false;
+    // this.zoomCenterX = 0.5;
+    // this.zoomCenterY = 0.5;
     this.zoomSpeed = 5.0;
 
     this.leftScrollMargin = this.options.maxYScale === this.options.minYScale ? 0.0 : 32.0;
