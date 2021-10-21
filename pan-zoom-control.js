@@ -12,7 +12,11 @@ const defaultOptions = {
   minYPos: 0.0,
   maxYPos: 1.0,
 
-  includeSizeInMaxPos: true
+  minScreenInViewX: 1.0,
+  minScreenInViewY: 1.0,
+
+  includeSizeInMaxPos: true,
+  scaleMinPos: false
 }
 /** @typedef {{
  *   handleClick?: (x,y) => boolean,
@@ -80,6 +84,17 @@ export class PanZoomBase {
     this.handlers.unshift(controlHandler)
   }
 
+  /**
+   * Adds a control handler to be used for handling the controls
+   * @param {ControlHandler} controlHandler 
+   */
+  removeHandler(controlHandler) {
+    let ix = this.handlers.indexOf(controlHandler);
+    if (ix >= 0) {
+      this.handlers.splice(ix, 1);
+    }
+  }
+
   updateSmooth(time) {
     let deltaTime = time - this.lastTime;
     this.lastTime = time;
@@ -145,13 +160,14 @@ export class PanZoomChild extends PanZoomBase {
 export default class PanZoomControl extends PanZoomBase {
   /**
    * @param {HTMLElement} element 
-   * @param {*} options 
+   * @param {Partial<typeof defaultOptions>} options 
    */
   constructor(element, options) {
     super();
 
     this.element = element;
     options = options || {};
+    /** @type {Partial<typeof defaultOptions>} */
     this.options = { ...defaultOptions, ...options }
 
     // this.zoomCenterX = 0.5;
@@ -312,12 +328,18 @@ export default class PanZoomControl extends PanZoomBase {
   restrictPos() {
     let maxXPos = this.options.maxXPos;
     let maxYPos = this.options.maxYPos;
+
     if (this.options.includeSizeInMaxPos) {
-      maxXPos -= 1.0 / this.xScale;
-      maxYPos -= 1.0 / this.yScale;
+      maxXPos -= this.options.minScreenInViewX / this.xScale;
+      maxYPos -= this.options.minScreenInViewY / this.yScale;
     }
-    this.xOffset = Math.max(this.options.minXPos, Math.min(maxXPos, this.xOffset));
-    this.yOffset = Math.max(this.options.minYPos, Math.min(maxYPos, this.yOffset));
+    if (this.options.scaleMinPos) {
+      this.xOffset = Math.max(this.options.minXPos / this.xScale, Math.min(maxXPos, this.xOffset));
+      this.yOffset = Math.max(this.options.minYPos / this.yScale, Math.min(maxYPos, this.yOffset));
+    } else {
+      this.xOffset = Math.max(this.options.minXPos, Math.min(maxXPos, this.xOffset));
+      this.yOffset = Math.max(this.options.minYPos, Math.min(maxYPos, this.yOffset));
+    }
   }
 
   clear() {
@@ -339,7 +361,7 @@ export default class PanZoomControl extends PanZoomBase {
 export class PanZoomParent extends PanZoomControl {
   /**
    * @param {HTMLElement} element 
-   * @param {*} options 
+   * @param {Partial<typeof defaultOptions>} options 
    */
   constructor(element, options) {
     super(element, options);
