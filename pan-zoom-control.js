@@ -41,7 +41,7 @@ export class PanZoomBase {
     this.xOffsetSmooth = 0.0;
     this.yOffsetSmooth = 0.0;
     
-    this.easeFactor = 0.6;
+    this.easeFactor = 0.7;
     this.lastTime = 0.0;
 
     this.isPanning = false;
@@ -98,19 +98,47 @@ export class PanZoomBase {
   updateSmooth(time) {
     let deltaTime = time - this.lastTime;
     this.lastTime = time;
+
     let factor = Math.pow(this.easeFactor, deltaTime / 16.66);
     let n_factor = 1.0 - factor;
     // TODO correct for scale and offset in one run it now shifts left right on zoom
+
+    // this.xOffsetSmooth -= 0.5 / this.xScaleSmooth;
+    // this.yOffsetSmooth -= 0.5 / this.yScaleSmooth;
+    // this.xOffset -= 0.5 / this.xScale;
+    // this.yOffset -= 0.5 / this.yScale;
+
+    // this.xOffset += mouseX / oldScaleX - mouseX / this.xScale;
+    // this.yOffset += mouseY / oldScaleY - mouseY / this.yScale;
+    let mouseX = 0.5;
+    let mouseY = 0.5;
     let oldScaleX = this.xScaleSmooth;
     let oldScaleY = this.yScaleSmooth;
+
+    let skipXOfs = Math.abs(this.xOffsetSmooth - this.xOffset) < (0.001 / this.xScale);
     this.xScaleSmooth = this.xScaleSmooth * factor + n_factor * this.xScale;
     this.yScaleSmooth = this.yScaleSmooth * factor + n_factor * this.yScale;
 
-    // this.xOffset += this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth;
-    // this.yOffset += this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth;
-    
-    this.xOffsetSmooth = (this.xOffsetSmooth || 0.0) * factor + n_factor * this.xOffset;
+    let scale_dx = mouseX / oldScaleX - mouseX / this.xScaleSmooth;
+    let scale_dy = mouseY / oldScaleY - mouseY / this.yScaleSmooth;
+
+    this.xOffsetSmooth += scale_dx;
+    this.yOffsetSmooth += scale_dy;
+
+    this.xOffset += scale_dx;
+    this.yOffset += scale_dy;
+
+    // console.log(this.xOffsetSmooth);
+    // if (!skipXOfs) {
+      this.xOffsetSmooth = (this.xOffsetSmooth || 0.0) * factor + n_factor * this.xOffset;
+    // }
     this.yOffsetSmooth = (this.yOffsetSmooth || 0.0) * factor + n_factor * this.yOffset;
+
+
+    // this.xOffsetSmooth += 0.5 / this.xScaleSmooth;
+    // this.yOffsetSmooth += 0.5 / this.yScaleSmooth;
+    // this.xOffset += 0.5 / this.xScale;
+    // this.yOffset += 0.5 / this.yScale;
 
     // this.xOffsetSmooth += 0.33 * (this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth);
     // this.yOffsetSmooth += 0.33 * (this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth);
@@ -148,12 +176,12 @@ export class PanZoomChild extends PanZoomBase {
     this.xScale = this.parent.xScaleSmooth * this.widthFactor;
     this.yOffset = this.parent.yOffsetSmooth - this.myYOffset;
     this.yScale = this.parent.yScaleSmooth * this.heightFactor;
-    super.updateSmooth(time);
-    // this.xOffsetSmooth = this.xOffset;
-    // this.xScaleSmooth = this.xScale;
-    // this.yOffsetSmooth = this.yOffset;
-    // this.yScaleSmooth = this.yScale;
-    // beforeAnimationFrame(this.updateSmoothBound);
+    // super.updateSmooth(time);
+    this.xOffsetSmooth = this.xOffset;
+    this.xScaleSmooth = this.xScale;
+    this.yOffsetSmooth = this.yOffset;
+    this.yScaleSmooth = this.yScale;
+    beforeAnimationFrame(this.updateSmoothBound);
   }
 }
 
@@ -243,8 +271,8 @@ export default class PanZoomControl extends PanZoomBase {
       }
       this.zoomCenterX = mouseX;
       this.zoomCenterY = mouseY;
-      this.xOffset += mouseX / oldScaleX - mouseX / this.xScale;
-      this.yOffset += mouseY / oldScaleY - mouseY / this.yScale;
+      // this.xOffset += mouseX / oldScaleX - mouseX / this.xScale;
+      // this.yOffset += mouseY / oldScaleY - mouseY / this.yScale;
       this.restrictPos();
       this.options.onChange();
       // console.log('mouseScale: ',this.xScale,',',this.yScale, ' ', mouseX,',',mouseY);
