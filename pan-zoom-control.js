@@ -115,7 +115,6 @@ export class PanZoomBase {
     let oldScaleX = this.xScaleSmooth;
     let oldScaleY = this.yScaleSmooth;
 
-    let skipXOfs = Math.abs(this.xOffsetSmooth - this.xOffset) < (0.001 / this.xScale);
     this.xScaleSmooth = this.xScaleSmooth * factor + n_factor * this.xScale;
     this.yScaleSmooth = this.yScaleSmooth * factor + n_factor * this.yScale;
 
@@ -134,6 +133,7 @@ export class PanZoomBase {
     // }
     this.yOffsetSmooth = (this.yOffsetSmooth || 0.0) * factor + n_factor * this.yOffset;
 
+    this.restrictPos();
 
     // this.xOffsetSmooth += 0.5 / this.xScaleSmooth;
     // this.yOffsetSmooth += 0.5 / this.yScaleSmooth;
@@ -273,7 +273,7 @@ export default class PanZoomControl extends PanZoomBase {
       this.zoomCenterY = mouseY;
       // this.xOffset += mouseX / oldScaleX - mouseX / this.xScale;
       // this.yOffset += mouseY / oldScaleY - mouseY / this.yScale;
-      this.restrictPos();
+      // this.restrictPos();
       this.options.onChange();
       // console.log('mouseScale: ',this.xScale,',',this.yScale, ' ', mouseX,',',mouseY);
     }
@@ -325,7 +325,7 @@ export default class PanZoomControl extends PanZoomBase {
         let newMouseY = 1.0 - (event.offsetY / this.element.clientHeight);
         const deltaX = (newMouseX - mouseDownX);
         const deltaY = (newMouseY - mouseDownY);
-        if (Math.abs(deltaX) >= 0.01 || Math.abs(deltaY) >= 0.01) {
+        if (Math.abs(deltaX) >= 0.01 / this.xScale || Math.abs(deltaY) >= 0.01 / this.yScale) {
           mouseMoved = true;
         }
         if (mouseDown) {
@@ -354,19 +354,29 @@ export default class PanZoomControl extends PanZoomBase {
   }
 
   restrictPos() {
-    let maxXPos = this.options.maxXPos;
-    let maxYPos = this.options.maxYPos;
-
-    if (this.options.includeSizeInMaxPos) {
-      maxXPos -= this.options.minScreenInViewX / this.xScale;
-      maxYPos -= this.options.minScreenInViewY / this.yScale;
+    // Don't restrict pos while scaling
+    if (Math.abs(this.xScale - this.xScaleSmooth) < (0.01 * this.xScaleSmooth)) {
+      let maxXPos = this.options.maxXPos;
+      if (this.options.includeSizeInMaxPos) {
+        maxXPos -= this.options.minScreenInViewX / this.xScale;
+      }
+      if (this.options.scaleMinPos) {
+        this.xOffset = Math.max(this.options.minXPos / this.xScale, Math.min(maxXPos, this.xOffset));
+      } else {
+        this.xOffset = Math.max(this.options.minXPos, Math.min(maxXPos, this.xOffset));
+      }
     }
-    if (this.options.scaleMinPos) {
-      this.xOffset = Math.max(this.options.minXPos / this.xScale, Math.min(maxXPos, this.xOffset));
-      this.yOffset = Math.max(this.options.minYPos / this.yScale, Math.min(maxYPos, this.yOffset));
-    } else {
-      this.xOffset = Math.max(this.options.minXPos, Math.min(maxXPos, this.xOffset));
-      this.yOffset = Math.max(this.options.minYPos, Math.min(maxYPos, this.yOffset));
+    // Don't restrict pos while scaling
+    if (Math.abs(this.yScale - this.yScaleSmooth) < (0.01 * this.yScaleSmooth)) {
+      let maxYPos = this.options.maxYPos;
+      if (this.options.includeSizeInMaxPos) {
+        maxYPos -= this.options.minScreenInViewY / this.yScale;
+      }
+      if (this.options.scaleMinPos) {
+        this.yOffset = Math.max(this.options.minYPos / this.yScale, Math.min(maxYPos, this.yOffset));
+      } else {
+        this.yOffset = Math.max(this.options.minYPos, Math.min(maxYPos, this.yOffset));
+      }
     }
   }
 
