@@ -162,6 +162,8 @@ export class PanZoomChild extends PanZoomBase {
     this.myHeight = 1.0; // My height within parentHeight
     this.myXOffset = 0.0; // My offset within parentWidth
     this.myYOffset = 0.0; // My offset within parentHeight
+    this.myXOffsetSmooth = 0.0; // My offset within parentWidth
+    this.myYOffsetSmooth = 0.0; // My offset within parentHeight
     this.parentWidth = 10.0;
     this.parentHeight = 2.0;
     this.widthFactor = 1.0;
@@ -170,11 +172,13 @@ export class PanZoomChild extends PanZoomBase {
 
   updateSmooth(time) {
   // update() {
+    this.myXOffsetSmooth += (this.myXOffset - this.myXOffsetSmooth) * 0.1;
+    this.myYOffsetSmooth += (this.myYOffset - this.myYOffsetSmooth) * 0.1;
     this.widthFactor = this.myWidth / this.parentWidth;
     this.heightFactor = this.myHeight / this.parentHeight;  // 2 /4 = 0.5
-    this.xOffset = this.parent.xOffsetSmooth / this.widthFactor- this.myXOffset / this.myWidth;// / this.parentWidth;
+    this.xOffset = this.parent.xOffsetSmooth / this.widthFactor- this.myXOffsetSmooth / this.myWidth;// / this.parentWidth;
     this.xScale = this.parent.xScaleSmooth * this.widthFactor;
-    this.yOffset = this.parent.yOffsetSmooth - this.myYOffset;
+    this.yOffset = this.parent.yOffsetSmooth - this.myYOffsetSmooth;
     this.yScale = this.parent.yScaleSmooth * this.heightFactor;
     // super.updateSmooth(time);
     this.xOffsetSmooth = this.xOffset;
