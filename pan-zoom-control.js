@@ -48,6 +48,9 @@ export class PanZoomBase {
 
     this.event = null;
 
+    this.zoomCenterX = 0.5;
+    this.zoomCenterY = 0.5;
+
     /* @type {Array<ControlHandler>) */
     this.handlers = [];
 
@@ -110,8 +113,8 @@ export class PanZoomBase {
 
     // this.xOffset += mouseX / oldScaleX - mouseX / this.xScale;
     // this.yOffset += mouseY / oldScaleY - mouseY / this.yScale;
-    let mouseX = 0.5;
-    let mouseY = 0.5;
+    let mouseX = this.zoomCenterX;
+    let mouseY = this.zoomCenterY;
     let oldScaleX = this.xScaleSmooth;
     let oldScaleY = this.yScaleSmooth;
 
@@ -172,8 +175,8 @@ export class PanZoomChild extends PanZoomBase {
 
   updateSmooth(time) {
   // update() {
-    this.myXOffsetSmooth += (this.myXOffset - this.myXOffsetSmooth) * 0.1;
-    this.myYOffsetSmooth += (this.myYOffset - this.myYOffsetSmooth) * 0.1;
+    this.myXOffsetSmooth += (this.myXOffset - this.myXOffsetSmooth) * 0.2;
+    this.myYOffsetSmooth += (this.myYOffset - this.myYOffsetSmooth) * 0.2;
     this.widthFactor = this.myWidth / this.parentWidth;
     this.heightFactor = this.myHeight / this.parentHeight;  // 2 /4 = 0.5
     this.xOffset = this.parent.xOffsetSmooth / this.widthFactor- this.myXOffsetSmooth / this.myWidth;// / this.parentWidth;
@@ -202,8 +205,6 @@ export default class PanZoomControl extends PanZoomBase {
     /** @type {Partial<typeof defaultOptions>} */
     this.options = { ...defaultOptions, ...options }
 
-    // this.zoomCenterX = 0.5;
-    // this.zoomCenterY = 0.5;
     this.zoomSpeed = 5.0;
 
     this.leftScrollMargin = this.options.maxYScale === this.options.minYScale ? 0.0 : 32.0;
@@ -360,6 +361,8 @@ export default class PanZoomControl extends PanZoomBase {
   restrictPos() {
     // Don't restrict pos while scaling
     if (Math.abs(this.xScale - this.xScaleSmooth) < (0.01 * this.xScaleSmooth)) {
+      this.zoomCenterX = (0.5 + this.zoomCenterX) * 0.5;
+  
       let maxXPos = this.options.maxXPos;
       if (this.options.includeSizeInMaxPos) {
         maxXPos -= this.options.minScreenInViewX / this.xScale;
@@ -372,6 +375,7 @@ export default class PanZoomControl extends PanZoomBase {
     }
     // Don't restrict pos while scaling
     if (Math.abs(this.yScale - this.yScaleSmooth) < (0.01 * this.yScaleSmooth)) {
+      this.zoomCenterY = (0.5 + this.zoomCenterY) * 0.5;
       let maxYPos = this.options.maxYPos;
       if (this.options.includeSizeInMaxPos) {
         maxYPos -= this.options.minScreenInViewY / this.yScale;
