@@ -19,6 +19,8 @@ const defaultOptions = {
   scaleMinPos: false
 }
 /** @typedef {{
+ *   isEnabled: boolean;
+ *   isVisible: boolean;
  *   handleClick?: (x,y) => boolean,
  *   handleMove?: (x,y) => boolean,
  *   handleDown?: (x,y) => boolean,
@@ -26,6 +28,30 @@ const defaultOptions = {
  *   handleKey?: (x,y,up) => boolean,
  *  }} ControlHandler 
  */
+
+export class ControlHandlerBase {
+  constructor() {
+    this._isVisible = true;
+    this._isEnabled = true;
+  }
+
+  get isEnabled() {
+    return this._isVisible && this._isEnabled;
+  }
+
+  set isEnabled(x) {
+    this._isEnabled = x;
+  }
+
+  get isVisible() {
+    return this._isVisible;
+  }
+
+  set isVisible(x) {
+    this._isVisible = x;
+  }
+
+}
 
 export class PanZoomBase {
   constructor() {
@@ -71,7 +97,7 @@ export class PanZoomBase {
 
   eventHandler(m1, x, y)  {
     for (let h of this.handlers) {
-      if (m1(h, x, y)) {
+      if (h.isEnabled && m1(h, x, y)) {
         return true;
       }
     }
