@@ -18,21 +18,49 @@ const defaultOptions = {
   includeSizeInMaxPos: true,
   scaleMinPos: false
 }
-/** @typedef {{
- *   isEnabled: boolean;
- *   isVisible: boolean;
- *   handleClick?: (x,y) => boolean,
- *   handleMove?: (x,y) => boolean,
- *   handleDown?: (x,y) => boolean,
- *   handleUp?: (x,y) => boolean,
- *   handleKey?: (x,y,up) => boolean,
- *  }} ControlHandler 
- */
 
 export class ControlHandlerBase {
+  handleClick (x,y) { 
+    return false 
+  }
+  handleMove (x,y) { 
+    return false 
+  }
+  handleDown (x,y) { 
+    return false 
+  }
+  handleLeave (x,y) { 
+  }
+  handleUp (x,y) { 
+    return false 
+  }
+  handleKey (x,y,up) { 
+    return false 
+  }
   constructor() {
     this._isVisible = true;
     this._isEnabled = true;
+    this._isCaptured = false;
+    this._isFocused = false; // Set from _controller
+    this._controller = null;
+    this.onCaptureChange = (chb, value) => this._controller?.handleCaptureChange(chb, value);
+    this.onFocusChange = (chb, value) => this._controller?.handleFocusChange(chb, value);
+  }
+
+  focus() {
+    return this.onFocusChange(this, true);
+  }
+
+  blur() {
+    return this.onFocusChange(this, false);
+  }
+
+  releaseControl() {
+    return this._isCaptured = this.onCaptureChange(this, false);
+  }
+
+  captureControl() {
+    return this._isCaptured = this.onCaptureChange(this, true);
   }
 
   get isEnabled() {
@@ -40,15 +68,28 @@ export class ControlHandlerBase {
   }
 
   set isEnabled(x) {
-    this._isEnabled = x;
+    if (this._isEnabled !== x) {
+      this._isEnabled = x;
+      if (!x) {
+        if (this._isCaptured) {
+          this.releaseControl();
+        }
+        if (this.handleLeave) {
+          this.handleLeave();
+        }
+      }
+    }
   }
+
 
   get isVisible() {
     return this._isVisible;
   }
 
   set isVisible(x) {
-    this._isVisible = x;
+    if (this._isVisible !== x) {
+      this._isVisible = x;
+    }
   }
 
 }
@@ -79,6 +120,8 @@ export class PanZoomBase {
 
     /* @type {Array<ControlHandler>) */
     this.handlers = [];
+    this.capturedControl = null;
+    this.focusedControl = null;
 
     this.onClick = this.eventHandler.bind(this, (h, x, y) => h.handleClick && h.handleClick(x, y));
     this.onMove = this.eventHandler.bind(this, (h, x, y) => h.handleMove && h.handleMove(x, y));
@@ -95,7 +138,10 @@ export class PanZoomBase {
     beforeAnimationFrame(this.updateSmoothBound);
   }
 
-  eventHandler(m1, x, y)  {
+  eventHandler(m1, x, y) {
+    if (this.capturedControl) {
+      return m1(this.capturedControl, x, y);
+    }
     for (let h of this.handlers) {
       if (h.isEnabled && m1(h, x, y)) {
         return true;
@@ -106,20 +152,55 @@ export class PanZoomBase {
 
   /**
    * Adds a control handler to be used for handling the controls
-   * @param {ControlHandler} controlHandler 
+   * @param {ControlHandlerBase} controlHandler 
    */
   addHandler(controlHandler) {
     // Last add 1st handle because it's on top
     this.handlers.unshift(controlHandler)
+    controlHandler._controller = this;
+  }
+
+  handleCaptureChange(ch, value) {
+    if (value) {
+      this.capturedControl = ch;
+      return true;
+    } else {
+      if (this.capturedControl === ch) {
+        this.capturedControl = null;
+      }
+      return false;
+    }
+  }
+
+  
+  handleFocusChange(ch, value) {
+    if (value) {
+      if (this.focusedControl !== ch) {
+        this.focusedControl = ch;
+        for (let h of this.handlers) {
+          h._isFocused = h === ch;
+        }
+      }
+      return true;
+    } else {
+      if (this.focusedControl === ch) {
+        this.focusedControl = null;
+        for (let h of this.handlers) {
+          h._isFocused = false;
+        }
+      }
+      return false;
+    }
   }
 
   /**
    * Adds a control handler to be used for handling the controls
-   * @param {ControlHandler} controlHandler 
+   * @param {ControlHandlerBase} controlHandler 
    */
   removeHandler(controlHandler) {
     let ix = this.handlers.indexOf(controlHandler);
     if (ix >= 0) {
+      this.handleCaptureChange(this.handlers[ix], false);
       this.handlers.splice(ix, 1);
     }
   }
