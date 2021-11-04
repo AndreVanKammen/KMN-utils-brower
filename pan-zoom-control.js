@@ -45,6 +45,15 @@ export class ControlHandlerBase {
     this._controller = null;
     this.onCaptureChange = (chb, value) => this._controller?.handleCaptureChange(chb, value);
     this.onFocusChange = (chb, value) => this._controller?.handleFocusChange(chb, value);
+    this.onCursorChange = (chb, value) => this._controller?.handleCursorChange(chb, value);
+    this._cursor = '';
+  }
+
+  setCursor(cursor) {
+    if (this._cursor !== cursor) {
+      this._cursor = cursor;
+      this.onCursorChange(this, cursor);
+    }
   }
 
   focus() {
@@ -67,16 +76,21 @@ export class ControlHandlerBase {
     return this._isVisible && this._isEnabled;
   }
 
+  cleanupForDisabled() {
+    if (this._isCaptured) {
+      this.releaseControl();
+    }
+    if (this.handleLeave) {
+      this.handleLeave();
+    }
+    this.setCursor('');
+  }
+
   set isEnabled(x) {
     if (this._isEnabled !== x) {
       this._isEnabled = x;
       if (!x) {
-        if (this._isCaptured) {
-          this.releaseControl();
-        }
-        if (this.handleLeave) {
-          this.handleLeave();
-        }
+        this.cleanupForDisabled();
       }
     }
   }
@@ -89,6 +103,9 @@ export class ControlHandlerBase {
   set isVisible(x) {
     if (this._isVisible !== x) {
       this._isVisible = x;
+      if (!x && this._isEnabled) {
+        this.cleanupForDisabled();
+      }
     }
   }
 
@@ -150,6 +167,30 @@ export class PanZoomBase {
     return false;
   };
 
+  updateCursor(cursor) {
+  }
+
+  setCursor(cursor) {
+    if (cursor !== this._cursor) {
+      this._cursor = cursor;
+      this.updateCursor(cursor);
+    }
+  }
+
+  handleCursorChange(chb, value) {
+    if (this.capturedControl) {
+      this.setCursor(this.capturedControl._cursor);
+      return;
+    }
+    for (let h of this.handlers) {
+      if (h.isEnabled && h._cursor !== '') {
+        this.setCursor(h._cursor);
+        return;
+      }
+    }
+    this.setCursor('');
+  }
+
   /**
    * Adds a control handler to be used for handling the controls
    * @param {ControlHandlerBase} controlHandler 
@@ -163,16 +204,17 @@ export class PanZoomBase {
   handleCaptureChange(ch, value) {
     if (value) {
       this.capturedControl = ch;
+      this.handleCursorChange();
       return true;
     } else {
       if (this.capturedControl === ch) {
         this.capturedControl = null;
       }
+      this.handleCursorChange();
       return false;
     }
   }
 
-  
   handleFocusChange(ch, value) {
     if (value) {
       if (this.focusedControl !== ch) {
@@ -181,6 +223,7 @@ export class PanZoomBase {
           h._isFocused = h === ch;
         }
       }
+      this.handleCursorChange();
       return true;
     } else {
       if (this.focusedControl === ch) {
@@ -189,6 +232,7 @@ export class PanZoomBase {
           h._isFocused = false;
         }
       }
+      this.handleCursorChange();
       return false;
     }
   }
@@ -296,6 +340,10 @@ export class PanZoomChild extends PanZoomBase {
     this.yOffsetSmooth = this.yOffset;
     this.yScaleSmooth = this.yScale;
     beforeAnimationFrame(this.updateSmoothBound);
+  }
+
+  updateCursor(cursor) {
+    this.parent.updateCursor(cursor);
   }
 }
 
@@ -505,6 +553,10 @@ export default class PanZoomControl extends PanZoomBase {
     this.yScaleSmooth = 1.0;
     this.xOffsetSmooth = 0.0;
     this.yOffsetSmooth = 0.0;
+  }
+
+  updateCursor(cursor) {
+    this.element.style.cursor = cursor;
   }
 
   dispose() {
