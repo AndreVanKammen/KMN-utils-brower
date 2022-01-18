@@ -151,9 +151,16 @@ export class PanZoomBase {
     this.pointerDown = false;
     this.pointerInside = false;
 
-    this.updateSmoothBound = this.updateSmooth.bind(this);
-    beforeAnimationFrame(this.updateSmoothBound);
+    this._updateSmoothBound = this._updateSmooth.bind(this);
+    beforeAnimationFrame(this._updateSmoothBound);
   }
+
+  _updateSmooth(time) {
+    this.updateSmooth(time)
+ 
+    beforeAnimationFrame(this._updateSmoothBound);
+  }
+
 
   eventHandler(m1, x, y) {
     if (this.capturedControl) {
@@ -283,7 +290,7 @@ export class PanZoomBase {
 
     // console.log(this.xOffsetSmooth);
     // if (!skipXOfs) {
-      this.xOffsetSmooth = (this.xOffsetSmooth || 0.0) * factor + n_factor * this.xOffset;
+    this.xOffsetSmooth = (this.xOffsetSmooth || 0.0) * factor + n_factor * this.xOffset;
     // }
     this.yOffsetSmooth = (this.yOffsetSmooth || 0.0) * factor + n_factor * this.yOffset;
 
@@ -297,7 +304,6 @@ export class PanZoomBase {
     // this.xOffsetSmooth += 0.33 * (this.zoomCenterX / oldScaleX - this.zoomCenterX / this.xScaleSmooth);
     // this.yOffsetSmooth += 0.33 * (this.zoomCenterY / oldScaleY - this.zoomCenterY / this.yScaleSmooth);
     // this.restrictPos();
-    beforeAnimationFrame(this.updateSmoothBound);
   }
 
   restrictPos() {
@@ -325,12 +331,12 @@ export class PanZoomChild extends PanZoomBase {
   }
 
   updateSmooth(time) {
-  // update() {
+    // update() {
     this.myXOffsetSmooth += (this.myXOffset - this.myXOffsetSmooth) * 0.2;
     this.myYOffsetSmooth += (this.myYOffset - this.myYOffsetSmooth) * 0.2;
     this.widthFactor = this.myWidth / this.parentWidth;
     this.heightFactor = this.myHeight / this.parentHeight;  // 2 /4 = 0.5
-    this.xOffset = this.parent.xOffsetSmooth / this.widthFactor- this.myXOffsetSmooth / this.myWidth;// / this.parentWidth;
+    this.xOffset = this.parent.xOffsetSmooth / this.widthFactor - this.myXOffsetSmooth / this.myWidth;// / this.parentWidth;
     this.xScale = this.parent.xScaleSmooth * this.widthFactor;
     this.yOffset = this.parent.yOffsetSmooth - this.myYOffsetSmooth;
     this.yScale = this.parent.yScaleSmooth * this.heightFactor;
@@ -339,7 +345,6 @@ export class PanZoomChild extends PanZoomBase {
     this.xScaleSmooth = this.xScale;
     this.yOffsetSmooth = this.yOffset;
     this.yScaleSmooth = this.yScale;
-    beforeAnimationFrame(this.updateSmoothBound);
   }
 
   updateCursor(cursor) {
