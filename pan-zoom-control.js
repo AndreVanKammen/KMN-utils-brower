@@ -23,6 +23,9 @@ export class ControlHandlerBase {
   handleClick (x,y) { 
     return false 
   }
+  handleDblClick (x,y) { 
+    return false 
+  }
   handleMove (x,y) { 
     return false 
   }
@@ -141,6 +144,7 @@ export class PanZoomBase {
     this.focusedControl = null;
 
     this.onClick = this.eventHandler.bind(this, (h, x, y) => h.handleClick && h.handleClick(x, y));
+    this.onDblClick = this.eventHandler.bind(this, (h, x, y) => h.handleDblClick && h.handleDblClick(x, y));
     this.onMove = this.eventHandler.bind(this, (h, x, y) => h.handleMove && h.handleMove(x, y));
     this.onLeave = this.eventHandler.bind(this, (h, x, y) => h.handleLeave && h.handleLeave(x, y));
     this.onDown = this.eventHandler.bind(this, (h, x, y) => h.handleDown && h.handleDown(x, y));
@@ -369,6 +373,8 @@ export default class PanZoomControl extends PanZoomBase {
 
     this.leftScrollMargin = this.options.maxYScale === this.options.minYScale ? 0.0 : 32.0;
 
+    this.haltDragging = false;
+
     this.clear();
 
     let mouseInside = false;
@@ -407,6 +413,8 @@ export default class PanZoomControl extends PanZoomBase {
     // Zoom control
     this.element.onwheel = (event) => {
       this.event = event;
+      event.preventDefault();
+
       let mouseX = event.offsetX / this.element.clientWidth;
       let mouseY = 1.0 - (event.offsetY / this.element.clientHeight);
       let oldScaleX = this.xScale;
@@ -490,10 +498,10 @@ export default class PanZoomControl extends PanZoomBase {
         let newMouseY = 1.0 - (event.offsetY / this.element.clientHeight);
         const deltaX = (newMouseX - mouseDownX);
         const deltaY = (newMouseY - mouseDownY);
-        if (Math.abs(deltaX) >= 0.01 / this.xScale || Math.abs(deltaY) >= 0.01 / this.yScale) {
+        if (Math.abs(event.offsetX) >= 1.0 || Math.abs(event.offsetY) >= 1.0) {
           mouseMoved = true;
         }
-        if (mouseDown) {
+        if (mouseDown && !this.haltDragging) {
           this.xOffset = mouseDownTrackPosX - deltaX / this.xScale;
           this.yOffset = mouseDownTrackPosY - deltaY / this.yScale;
           this.restrictPos();
@@ -510,11 +518,21 @@ export default class PanZoomControl extends PanZoomBase {
         this.onUp(this.mouseX, this.mouseY);
         this.isPanning = false;
         mouseDown = false;
-        if (!mouseMoved) {
-          this.onClick(this.mouseX, this.mouseY);
-        }
         this.pointerDown = false;
       };
+
+      this.element.onclick = (event) => {
+        if (!mouseMoved) {
+          console.log('click0');
+          this.onClick(this.mouseX, this.mouseY);
+        }
+      }
+      this.element.ondblclick = (event) => {
+        if (!mouseMoved) {
+          console.log('click0');
+          this.onDblClick(this.mouseX, this.mouseY);
+        }
+      }
     }
   }
 
@@ -592,6 +610,11 @@ export class PanZoomParent extends PanZoomControl {
       this,
       (c, x, y) => c.onClick(x, y),
       (h, x, y) => h.handleClick && h.handleClick(x, y));
+    
+    this.onDblClick = eventHandler.bind(
+      this,
+      (c, x, y) => c.onDblClick(x, y),
+      (h, x, y) => h.handleDblClick && h.handleDblClick(x, y));
     
     this.onMove = eventHandler.bind(
       this,
