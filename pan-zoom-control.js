@@ -498,7 +498,7 @@ export default class PanZoomControl extends PanZoomBase {
         let newMouseY = 1.0 - (event.offsetY / this.element.clientHeight);
         const deltaX = (newMouseX - mouseDownX);
         const deltaY = (newMouseY - mouseDownY);
-        if (Math.abs(event.offsetX) >= 1.0 || Math.abs(event.offsetY) >= 1.0) {
+        if (Math.abs(event.offsetX) > 2.0 || Math.abs(event.offsetY) > 2.0) {
           mouseMoved = true;
         }
         if (mouseDown && !this.haltDragging) {
