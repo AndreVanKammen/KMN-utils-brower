@@ -420,6 +420,9 @@ export default class PanZoomControl extends PanZoomBase {
       let oldScaleX = this.xScale;
       let oldScaleY = this.yScale;
       let deltaY = event.deltaY;
+      if (!deltaY || !isFinite(deltaY)) {
+        return;
+      }
       if (event.deltaMode > 0) {
         // Lines
         deltaY *= 16;
