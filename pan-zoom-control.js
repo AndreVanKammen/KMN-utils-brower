@@ -526,13 +526,11 @@ export default class PanZoomControl extends PanZoomBase {
 
       this.element.onclick = (event) => {
         if (!mouseMoved) {
-          console.log('click0');
           this.onClick(this.mouseX, this.mouseY);
         }
       }
       this.element.ondblclick = (event) => {
         if (!mouseMoved) {
-          console.log('click0');
           this.onDblClick(this.mouseX, this.mouseY);
         }
       }
