@@ -2,6 +2,8 @@
 // Licensed under CC BY-NC-SA 
 // https://creativecommons.org/licenses/by-nc-sa/4.0/
 
+import { createKMNElement } from "../../KMN-varstack-browser/utils/html-utils.js";
+
 class PanelBase {
   constructor(defaultOptions, options) {
     this.options = { ...defaultOptions, ...options };
@@ -18,7 +20,7 @@ class PanelBase {
    * @param {HTMLElement} parentElement
    */
   initializeDOM(parentElement) {
-    this.parentElement = document.createElement("div");
+    this.parentElement = createKMNElement("div");
     this.parentElement.classList.add("tabPanel");
     parentElement.appendChild(this.parentElement);
     this.updateHiddenClass();

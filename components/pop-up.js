@@ -1,13 +1,13 @@
 import PanelBase from "./panel-base.js";
 import svgIcon from "../svg-icons.js";
-import { addCSS } from "../../KMN-varstack-browser/utils/html-utils.js";
+import { addCSS, createKMNElement, kmnClassName } from "../../KMN-varstack-browser/utils/html-utils.js";
 
-const cssStr = `/*css*/ 
-:root {
+const cssStr = /*css*/`
+.${kmnClassName} {
   --popupHeaderHeight: 32px;
   --popupMargin: 4px;
 }
-.popupArea {
+.${kmnClassName}.popupArea {
   position: fixed;
   display: block;
   width: 100%;
@@ -15,7 +15,7 @@ const cssStr = `/*css*/
   background: rgba(0,0,0,0.6);
   z-index: 10;
 }
-.popupContent {
+.${kmnClassName}.popupContent {
   background: var(--backgroundColor);
   width: 80%;
   max-width: 800px;
@@ -27,7 +27,7 @@ const cssStr = `/*css*/
   transform: translate(-50%,-50%);
 }
 
-.popupHeader {
+.${kmnClassName}.popupHeader {
   background: var(--subHeaderBackground);
   color: var(--subHeaderColor);
   left: 0;
@@ -37,13 +37,13 @@ const cssStr = `/*css*/
   border-bottom: 1px solid var(--borderColor);
 }
 
-.popupTitle {
+.${kmnClassName}.popupTitle {
   left: var(--popupMargin);
   font-size: calc(var(--popupHeaderHeight) * 0.6);
   line-height: var(--popupHeaderHeight);
 }
 
-.popupHeader .close {
+.${kmnClassName}.popupHeader .close {
   position: absolute;
   right: 0;
   top: 2px;
@@ -53,13 +53,13 @@ const cssStr = `/*css*/
   stroke-width: 2px;
 }
 
-.popupHeader .close:hover {
+.${kmnClassName}.popupHeader .close:hover {
   background: var(--activeHoverColor);
   stroke: white;
   stroke-width: 3px;
 }
 
-.popupPanel {
+.${kmnClassName}.popupPanel {
   position: absolute;
   display: block;
   left: var(--popupMargin);
@@ -67,7 +67,7 @@ const cssStr = `/*css*/
   top: calc(var(--popupMargin) + var(--popupHeaderHeight));
   height: calc(100% - (var(--popupHeaderHeight) + var(--popupMargin) * 2));
 }
-/*!css*/`
+`
 
 class PopUp {
   constructor() {
@@ -91,7 +91,7 @@ class PopUp {
     /** @type {HTMLDivElement} */ /* @ts-ignore: this is annoying */
     this.popArea = document.querySelector('.popupArea');
     if (!this.popArea) {
-      this.popArea = document.createElement('div');
+      this.popArea = createKMNElement('div');
       this.popArea.classList.add('popupArea');
       this.popArea.$setVisible(false);
       document.body.appendChild(this.popArea);

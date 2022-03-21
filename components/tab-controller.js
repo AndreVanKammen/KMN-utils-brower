@@ -2,17 +2,17 @@
 // Licensed under CC BY-NC-SA 
 // https://creativecommons.org/licenses/by-nc-sa/4.0/
 
-import { addCSS } from '../../KMN-varstack-browser/utils/html-utils.js';
+import { addCSS, kmnClassName } from '../../KMN-varstack-browser/utils/html-utils.js';
 import TabFromDiv from './tab-from-div.js';
 import PanelBase from './panel-base.js';
 
-const cssStr = `/*css*/ 
-:root {
+const cssStr = /*css*/`
+.${kmnClassName} {
   --tabHeaderHeight: 32px;
   --codeBackground: rgb(24, 24, 24);
   --codeText: rgb(200,200,200);
 }
-.tabHeader {
+.${kmnClassName}.tabHeader {
   position: absolute;
   border-bottom: var(--subBorderWidth) solid var(--borderColor);
   border-right: var(--subBorderWidth) solid var(--borderColor);
@@ -23,21 +23,21 @@ const cssStr = `/*css*/
   padding: 0px;
   line-height: calc(var(--tabHeaderHeight) - var(--subBorderWidth) - 6px);
 }
-.tabPanel {
+.${kmnClassName}.tabPanel {
   overflow: hidden;
   background: var(--backgroundColor);
   color: var(--subHeaderColor)
 }
-.tabContent {
+.${kmnClassName}.tabContent {
   top: var(--tabHeaderHeight);
   height: calc(100% - var(--tabHeaderHeight));
   overflow: hidden;
 }
-.tabContentNoTabs {
+.${kmnClassName}.tabContentNoTabs {
   top: 0;
   height: 100%;
 }
-.tabButton {
+.${kmnClassName}.tabButton {
   background: var(--subHeaderBackground);
   color: var(--subHeaderColor);
   border: none;
@@ -47,11 +47,11 @@ const cssStr = `/*css*/
   padding: 0px 12px;
   height: 100%;
 }
-.tabButton:hover {
+.${kmnClassName}.tabButton:hover {
   background: var(--activeColor);
   color: white;
 }
-.tabButton.selected {
+.${kmnClassName}.tabButton.selected {
   background: var(--backgroundColor);
   outline: 1.5px solid var(--activeColor);
 }
