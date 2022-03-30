@@ -50,6 +50,9 @@ export class ControlHandlerBase {
     this.onFocusChange = (chb, value) => this._controller?.handleFocusChange(chb, value);
     this.onCursorChange = (chb, value) => this._controller?.handleCursorChange(chb, value);
     this._cursor = '';
+    this.isSelected = false;
+    // TODO: This is the isFocussed from the toplevel, needs better implementation to work with _isFocussed
+    this.isFocussed = false;
   }
 
   setCursor(cursor) {
@@ -484,7 +487,8 @@ export default class PanZoomControl extends PanZoomBase {
         const deltaX = (newMouseX - mouseDownX);
         const deltaY = (newMouseY - mouseDownY);
         if (Math.abs(event.offsetX) > 2.0 || Math.abs(event.offsetY) > 2.0) {
-          if ((performance.now() - mouseDownTime) > 200) {
+          let clickTime = (performance.now() - mouseDownTime);
+          if (clickTime > 200 || Math.abs(event.offsetX) > clickTime || Math.abs(event.offsetY) > clickTime) {
             mouseMoved = true;
           }
         }
