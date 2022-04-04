@@ -132,6 +132,7 @@ export class PanZoomBase {
     this.yOffsetSmooth = 0.0;
     
     this.easeFactor = 0.7;
+    this.currentEaseFactor = 0.7;
     this.lastTime = 0.0;
 
     this.isPanning = false;
@@ -169,12 +170,13 @@ export class PanZoomBase {
   }
 
 
-  eventHandler(m1, x, y) {
+  eventHandler(m1, x, y, debug = false) {
     if (this.capturedControl) {
       return m1(this.capturedControl, x, y);
     }
     for (let h of this.handlers) {
       if (h.isEnabled && m1(h, x, y)) {
+        if (debug) console.log('handler',h);
         return true;
       }
     }
@@ -267,8 +269,11 @@ export class PanZoomBase {
     let deltaTime = time - this.lastTime;
     this.lastTime = time;
 
-    let factor = Math.pow(this.easeFactor, deltaTime / 16.66);
+    let easeFactor = this.currentEaseFactor;
+    let factor = Math.pow(easeFactor, deltaTime / 16.66);
     let n_factor = 1.0 - factor;
+    // Ease the currenteasefactor back to the normal easefactor
+    this.currentEaseFactor = this.currentEaseFactor * factor + n_factor * this.easeFactor;
 
     let mouseX = this.zoomCenterX;
     let mouseY = this.zoomCenterY;
@@ -363,6 +368,8 @@ export default class PanZoomControl extends PanZoomBase {
     let mouseInside = false;
     let keyStillDown = false;
 
+    this.onGetZoomCenter = null;
+
     // TODO: Make global handler for everything
     window.addEventListener('keydown', (event) => {
       if (mouseInside) {
@@ -414,6 +421,12 @@ export default class PanZoomControl extends PanZoomBase {
         // Pages
         deltaY *= 40;
       }
+      if (this.onGetZoomCenter) {
+        this.onGetZoomCenter(mouseX, mouseY);
+      } else {
+        this.zoomCenterX = mouseX;
+        this.zoomCenterY = mouseY;
+      }
       if (event.offsetX > this.leftScrollMargin && !event.altKey) {
         // this.autoScaleX = false;
         // console.log(event.deltaY);
@@ -428,8 +441,6 @@ export default class PanZoomControl extends PanZoomBase {
         this.yScale *= (1000 - deltaY * this.zoomSpeed) / 1000; // (event.deltaY > 0) ? 0.9 : (1 / 0.9);
         this.yScale = Math.max(this.options.minYScale, Math.min(this.options.maxYScale, this.yScale));
       }
-      this.zoomCenterX = mouseX;
-      this.zoomCenterY = mouseY;
       // this.xOffset += mouseX / oldScaleX - mouseX / this.xScale;
       // this.yOffset += mouseY / oldScaleY - mouseY / this.yScale;
       // this.restrictPos();
@@ -486,7 +497,7 @@ export default class PanZoomControl extends PanZoomBase {
         let newMouseY = 1.0 - (event.offsetY / this.element.clientHeight);
         const deltaX = (newMouseX - mouseDownX);
         const deltaY = (newMouseY - mouseDownY);
-        if (Math.abs(event.offsetX) > 2.0 || Math.abs(event.offsetY) > 2.0) {
+        if (mouseDown && (Math.abs(event.offsetX) > 2.0 || Math.abs(event.offsetY) > 2.0)) {
           let clickTime = (performance.now() - mouseDownTime);
           if (clickTime > 200 || Math.abs(event.offsetX) > clickTime || Math.abs(event.offsetY) > clickTime) {
             mouseMoved = true;
@@ -514,6 +525,7 @@ export default class PanZoomControl extends PanZoomBase {
 
       this.element.onclick = (event) => {
         if (!mouseMoved) {
+          // console.log('click',this.mouseX, this.mouseY, this.event.offsetX, this.element.clientWidth,  this.xScale, this.event.target);
           this.onClick(this.mouseX, this.mouseY);
         }
       }
@@ -600,6 +612,18 @@ export class PanZoomParent extends PanZoomControl {
       }
       return this.eventHandler(m2, x, y);
     };
+    const eventHandlerDebug = (m1, m2, x, y) => {
+      let childHandlers = this.getChilds(x, y);
+      for (let childHandler of childHandlers) {
+        childHandler.child.event = this.event;
+        if (m1(childHandler.child, childHandler.x, childHandler.y)) {
+          console.log('child handler',childHandler);
+          return true;
+        }
+      }
+      console.log('main handler',this);
+      return this.eventHandler(m2, x, y, true);
+    };
     this.onClick = eventHandler.bind(
       this,
       (c, x, y) => c.onClick(x, y),
@@ -646,8 +670,8 @@ export class PanZoomParent extends PanZoomControl {
     for (let child of this.children) {
       let x = (px - (child.myXOffset / child.parentWidth)) / child.widthFactor;
       let y = py / child.heightFactor - child.myYOffset;
-      if ((x > -0.01 && x < 1.01 &&
-        y > -0.01 && y < 1.01) || child.pointerDown) {
+      if ((x >= -0.0 && x <= 1.0 &&
+        y >= -0.0 && y < 1.0) || child.pointerDown || child.capturedControl) {
         result.push({ child, x, y });
         child.pointerDown = this.pointerDown;
         if (!child.pointerInside) {
