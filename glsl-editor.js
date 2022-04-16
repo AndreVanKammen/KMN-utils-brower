@@ -4,7 +4,7 @@
 
 import CodeParser from '../KMN-utils.js/code-parser.js';
 import languageDefs from '../KMN-utils.js/code-glsl-def.js';
-import { addCSS } from '../KMN-varstack-browser/utils/html-utils.js';
+import { addCSS, kmnClassName } from '../KMN-varstack-browser/utils/html-utils.js';
 
 const defaultOptions = {
   parser: {
@@ -62,14 +62,14 @@ function getCaretPosition(el) {
 const tabRegEx =  new RegExp('\t', 'g');
 const CRLFregEx = new RegExp('\r\n', 'g');
 
-const cssStr = `/*css*/
-:root {
+const cssStr = /*css*/`
+.${kmnClassName} {
   --gutterWidth: 48px;
   --statusHeight: 22px;
   --codeText: rgb(200, 200, 200);
   --lineNumber: rgb(128, 128, 128);
 }
-.codeElement {
+.${kmnClassName}.codeElement {
   position: absolute;
   border: 0;
   outline: 0;
@@ -85,7 +85,7 @@ const cssStr = `/*css*/
   overflow-y: auto;
   white-space: pre;
 }
-.codeStatus {
+.${kmnClassName}.codeStatus {
   position: absolute;
   bottom: 0;
   height: calc(var(--statusHeight) - 2px);
@@ -94,19 +94,19 @@ const cssStr = `/*css*/
   padding: 1px 12px;
   background: var(--tableHeaderBackground);
 }
-.codeStatusLabel {
+.${kmnClassName}.codeStatusLabel {
   position: absolute;
   top: 4px;
   left: 12px;
 }
-.codePositionLabel {
+.${kmnClassName}.codePositionLabel {
   position: absolute;
   top: 4px;
   right: 12px;
   text-align: right;
 }
 
-.codeGutter {
+.${kmnClassName}.codeGutter {
   position: absolute;
   display: block;
   top: 0;
@@ -118,7 +118,7 @@ const cssStr = `/*css*/
   background: var(--backgroundColor);
   overflow: hidden;
 }
-.codeGutter .lineNumber {
+.${kmnClassName}.codeGutter .${kmnClassName}.lineNumber {
   display: block;
   color: var(--lineNumber);
   padding: 0 8px;
@@ -126,11 +126,11 @@ const cssStr = `/*css*/
   font-size: 18px;
   top: 0;
 }
-.codeGutter .lineNumber .error {
+.${kmnClassName}.codeGutter .${kmnClassName}.lineNumber .${kmnClassName}.error {
   background: rgb(192, 32, 32);
 }
 
-.codeEditor {
+.${kmnClassName}.codeEditor {
   position: absolute;
   border: 0;
   outline: 0;
@@ -150,36 +150,36 @@ const cssStr = `/*css*/
   overflow-y: visible;
   white-space: pre;
 }
-.codeEditor div {
+.${kmnClassName}.codeEditor div {
   display: flow-root;
   position: initial;
   width: initial;
   height: initial;
   font: inherit;
 }
-.code .symbol {   color: rgb(240,240,240); }
-.code .number {   color: rgb(180,180,240); }
-.code .word {     color: rgb(240,240,120); }
-.code .reserved { color: rgb(230,230,230); }
-.code .reserved_type { color: rgb(0 ,240,120); }
-.code .type {     color: rgb(  0,240,  0); }
-.code .function { color: rgb(240,180, 60); }
-.code .unknown,
-.code .other {    color: rgb(255,128,128); }
-.code .pre_process {    color: rgb(255,170,170); }
-.code .comment {  color: rgb(96 ,160, 96); }
+.${kmnClassName}.code .symbol {   color: rgb(240,240,240); }
+.${kmnClassName}.code .number {   color: rgb(180,180,240); }
+.${kmnClassName}.code .word {     color: rgb(240,240,120); }
+.${kmnClassName}.code .reserved { color: rgb(230,230,230); }
+.${kmnClassName}.code .reserved_type { color: rgb(0 ,240,120); }
+.${kmnClassName}.code .type {     color: rgb(  0,240,  0); }
+.${kmnClassName}.code .function { color: rgb(240,180, 60); }
+.${kmnClassName}.code .unknown,
+.${kmnClassName}.code .other {    color: rgb(255,128,128); }
+.${kmnClassName}.code .pre_process {    color: rgb(255,170,170); }
+.${kmnClassName}.code .comment {  color: rgb(96 ,160, 96); }
 /* .code .highlight { outline: 3px solid rgb(96,96,255,0.7); background: black; } */
-.code .reserved.highlight,
-.code .symbol.highlight { 
+.${kmnClassName}.code .reserved.highlight,
+.${kmnClassName}.code .symbol.highlight { 
   font-weight: 800;
   background: black; 
   color: rgb(255,255,255); 
 }
-.code .word.highlight { 
+.${kmnClassName}.code .${kmnClassName}.word.highlight { 
   background: rgb(16,16,128); 
   color: rgb(255,255,128);
 }
-.code .error { background: rgb(212,0,0); }
+.${kmnClassName}.code .${kmnClassName}.error { background: rgb(212,0,0); }
 /* .code .selected { outline: 1px solid rgba(0,0,255,0.5); } */
 /* .code:focus,
 .code:focus-within { outline: px solid rgba(0,0,255,0.9); } this including tabindex messes up browser, 
