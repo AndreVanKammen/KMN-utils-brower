@@ -422,7 +422,7 @@ export default class PanZoomControl extends PanZoomBase {
         deltaY *= 40;
       }
       if (this.onGetZoomCenter) {
-        this.onGetZoomCenter(mouseX, mouseY);
+        this.onGetZoomCenter(mouseX, mouseY, deltaY);
       } else {
         this.zoomCenterX = mouseX;
         this.zoomCenterY = mouseY;
