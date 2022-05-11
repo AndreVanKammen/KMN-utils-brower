@@ -16,7 +16,9 @@ const defaultOptions = {
   minScreenInViewY: 1.0,
 
   includeSizeInMaxPos: true,
-  scaleMinPos: false
+  scaleMinPos: false,
+
+  scrollXOnWheelUsingShift: false
 }
 
 export class ControlHandlerBase {
@@ -427,13 +429,18 @@ export default class PanZoomControl extends PanZoomBase {
         this.zoomCenterX = mouseX;
         this.zoomCenterY = mouseY;
       }
-      if (event.offsetX > this.leftScrollMargin && !event.altKey) {
-        // this.autoScaleX = false;
-        // console.log(event.deltaY);
-        // console.log(event.deltaMode);
-        // this.xScale *= (event.deltaY > 0) ? 0.9 : (1 / 0.9);
-        this.xScale *= (1000 - deltaY * this.zoomSpeed) / 1000;//  > 0) ? 0.9 : (1 / 0.9);
-        this.xScale = Math.max(this.options.minXScale, Math.min(this.options.maxXScale, this.xScale));
+      if (this.options.scrollXOnWheelUsingShift && event.shiftKey) {
+        this.xOffset -= deltaY * this.zoomSpeed / this.xScale / 10000;
+        this.restrictPos();
+      } else {
+        if (event.offsetX > this.leftScrollMargin && !event.altKey) {
+          // this.autoScaleX = false;
+          // console.log(event.deltaY);
+          // console.log(event.deltaMode);
+          // this.xScale *= (event.deltaY > 0) ? 0.9 : (1 / 0.9);
+          this.xScale *= (1000 - deltaY * this.zoomSpeed) / 1000;//  > 0) ? 0.9 : (1 / 0.9);
+          this.xScale = Math.max(this.options.minXScale, Math.min(this.options.maxXScale, this.xScale));
+        }
       }
       if (event.offsetY > 32 && !event.shiftKey) {
         // this.autoScaleY = false;
