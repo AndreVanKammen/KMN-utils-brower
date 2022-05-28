@@ -89,7 +89,7 @@ const cssStr = /*css*/`
   position: absolute;
   bottom: 0;
   height: calc(var(--statusHeight) - 2px);
-  width: calc(100% - 24px);
+  width: 100%;
   overflow: hidden;
   padding: 1px 12px;
   background: var(--tableHeaderBackground);
@@ -111,7 +111,7 @@ const cssStr = /*css*/`
   display: block;
   top: 0;
   width: calc(var(--gutterWidth) - 1px);
-  height: calc(100% - 16px);
+  height: 100%;
   padding: 8px 0;
   text-align: right;
   border-right: 1px solid var(--headerBackground);
@@ -139,7 +139,7 @@ const cssStr = /*css*/`
   top: 0;
   margin: 0 0 0 12px;
   padding: 8px 0;
-  height: calc(100% - 16px);
+  height: 100%;
   resize: none;
   width: calc(100% - 12px - var(--gutterWidth));
   background: var(--codeBackground);
