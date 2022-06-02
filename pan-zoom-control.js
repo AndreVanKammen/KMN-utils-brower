@@ -53,8 +53,8 @@ export class ControlHandlerBase {
     this.onCursorChange = (chb, value) => this._controller?.handleCursorChange(chb, value);
     this._cursor = '';
     this.isSelected = false;
-    // TODO: This is the isFocussed from the toplevel, needs better implementation to work with _isFocussed
-    this.isFocussed = false;
+    // TODO: This is the isFocused from the toplevel, needs better implementation to work with _isFocussed
+    this.isFocused = false;
   }
 
   setCursor(cursor) {
@@ -318,8 +318,8 @@ export class PanZoomChild extends PanZoomBase {
     this.myYOffset = 0.0; // My offset within parentHeight
     this.myXOffsetSmooth = 0.0; // My offset within parentWidth
     this.myYOffsetSmooth = 0.0; // My offset within parentHeight
-    this.parentWidth = 10.0;
-    this.parentHeight = 2.0;
+    this.parentWidth = 1.0;
+    this.parentHeight = 1.0;
     this.widthFactor = 1.0;
     this.heightFactor = 1.0;
   }
