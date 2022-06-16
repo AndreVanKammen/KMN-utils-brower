@@ -322,17 +322,21 @@ export class PanZoomChild extends PanZoomBase {
     this.parentHeight = 1.0;
     this.widthFactor = 1.0;
     this.heightFactor = 1.0;
+
+    // Children in children
+    this.childControl = new ChildControlHandler(this);
   }
 
   updateSmooth(time) {
     // update() {
-    this.myXOffsetSmooth += (this.myXOffset - this.myXOffsetSmooth) * 0.2;
-    this.myYOffsetSmooth += (this.myYOffset - this.myYOffsetSmooth) * 0.2;
+    // TODO Smoothing of child movement 
+    this.myXOffsetSmooth += (this.myXOffset - this.myXOffsetSmooth) * 0.15;
+    this.myYOffsetSmooth += (this.myYOffset - this.myYOffsetSmooth) * 0.15;
     this.widthFactor = this.myWidth / this.parentWidth;
     this.heightFactor = this.myHeight / this.parentHeight;  // 2 /4 = 0.5
     this.xOffset = this.parent.xOffsetSmooth / this.widthFactor - this.myXOffsetSmooth / this.myWidth;// / this.parentWidth;
+    this.yOffset = this.parent.yOffsetSmooth / this.heightFactor - this.myYOffsetSmooth / this.myHeight;
     this.xScale = this.parent.xScaleSmooth * this.widthFactor;
-    this.yOffset = this.parent.yOffsetSmooth - this.myYOffsetSmooth;
     this.yScale = this.parent.yScaleSmooth * this.heightFactor;
     // super.updateSmooth(time);
     this.xOffsetSmooth = this.xOffset;
@@ -599,75 +603,77 @@ export default class PanZoomControl extends PanZoomBase {
     // TODO: unbind all events
   }
 }
-export class PanZoomParent extends PanZoomControl {
+
+class ChildControlHandler {
   /**
-   * @param {HTMLElement} element 
-   * @param {Partial<typeof defaultOptions>} options 
+   * 
+   * @param {PanZoomBase} controller 
    */
-  constructor(element, options) {
-    super(element, options);
+  constructor(controller) {
+    this.controller = controller;
+
     /** @type {PanZoomChild[]} */
     this.children = [];
 
     const eventHandler = (m1, m2, x, y) => {
       let childHandlers = this.getChilds(x, y);
       for (let childHandler of childHandlers) {
-        childHandler.child.event = this.event;
+        childHandler.child.event = this.controller.event;
         if (m1(childHandler.child, childHandler.x, childHandler.y)) {
           return true;
         }
       }
-      return this.eventHandler(m2, x, y);
+      return this.controller.eventHandler(m2, x, y);
     };
     const eventHandlerDebug = (m1, m2, x, y) => {
       let childHandlers = this.getChilds(x, y);
       for (let childHandler of childHandlers) {
-        childHandler.child.event = this.event;
+        childHandler.child.event = this.controller.event;
         if (m1(childHandler.child, childHandler.x, childHandler.y)) {
           console.log('child handler',childHandler);
           return true;
         }
       }
-      console.log('main handler',this);
-      return this.eventHandler(m2, x, y, true);
+      console.log('main handler',this.controller);
+      return this.controller.eventHandler(m2, x, y, true);
     };
-    this.onClick = eventHandler.bind(
-      this,
+    this.controller.onClick = eventHandler.bind(
+      this.controller,
       (c, x, y) => c.onClick(x, y),
       (h, x, y) => h.handleClick && h.handleClick(x, y));
     
-    this.onDblClick = eventHandler.bind(
-      this,
+    this.controller.onDblClick = eventHandler.bind(
+      this.controller,
       (c, x, y) => c.onDblClick(x, y),
       (h, x, y) => h.handleDblClick && h.handleDblClick(x, y));
     
-    this.onMove = eventHandler.bind(
-      this,
+    this.controller.onMove = eventHandler.bind(
+      this.controller,
       (c, x, y) => c.onMove(x, y),
       (h, x, y) => h.handleMove && h.handleMove(x, y));
     
-    this.onLeave = eventHandler.bind(
-      this,
+    this.controller.onLeave = eventHandler.bind(
+      this.controller,
       (c, x, y) => c.onLeave(x, y),
       (h, x, y) => h.handleLeave && h.handleLeave(x, y));
     
-    this.onDown = eventHandler.bind(
-      this,
+    this.controller.onDown = eventHandler.bind(
+      this.controller,
       (c, x, y) => c.onDown(x, y),
       (h, x, y) => h.handleDown && h.handleDown(x, y));
     
-    this.onUp = eventHandler.bind(
-      this,
+    this.controller.onUp = eventHandler.bind(
+      this.controller,
       (c, x, y) => c.onUp(x, y),
       (h, x, y) => h.handleUp && h.handleUp(x, y));
     
-    this.onKeyDown = eventHandler.bind(
-      this,
+    this.controller.onKeyDown = eventHandler.bind(
+      this.controller,
       (c, x, y) => c.onKeyDown(x, y),
       (h, x, y) => h.handleKey && h.handleKey(x, y, false));
     
-    this.onKeyUp = eventHandler.bind(
-      this,
+    this.controller.onKeyUp = eventHandler.bind(
+      this.controller,
       (c, x, y) => c.onKeyUp(x, y),
       (h, x, y) => h.handleKey && h.handleKey(x, y, true));
   }
@@ -675,12 +681,17 @@ export class PanZoomParent extends PanZoomControl {
   getChilds(px, py) {
     let result = [];
     for (let child of this.children) {
-      let x = (px - (child.myXOffset / child.parentWidth)) / child.widthFactor;
-      let y = py / child.heightFactor - child.myYOffset;
+      // let x = (px - (child.myXOffset / child.parentWidth)) / child.widthFactor;
+      // let x = (px - (child.myXOffset / child.parentWidth)) / (child.myWidth / child.parentWidth);
+      // let x = px / (child.myWidth / child.parentWidth) -
+      //           (child.myXOffset / child.myWidth);
+      let x = (px * child.parentWidth - child.myXOffset) / child.myWidth;
+      // let y = py / child.heightFactor - child.myYOffset;
+      let y = (py * child.parentHeight - child.myYOffset) / child.myHeight;
       if ((x >= -0.0 && x <= 1.0 &&
         y >= -0.0 && y < 1.0) || child.pointerDown || child.capturedControl) {
         result.push({ child, x, y });
-        child.pointerDown = this.pointerDown;
+        child.pointerDown = this.controller.pointerDown;
         if (!child.pointerInside) {
           child.pointerInside = true;
         }
@@ -693,5 +704,25 @@ export class PanZoomParent extends PanZoomControl {
       // }
     }
     return result;
+  }
+
+
+  /**
+   * 
+   * @param {PanZoomChild} childControl 
+   */
+  add(childControl) {
+    this.children.push(childControl);
+  }
+}
+
+export class PanZoomParent extends PanZoomControl {
+  /**
+   * @param {HTMLElement} element 
+   * @param {Partial<typeof defaultOptions>} options 
+   */
+  constructor(element, options) {
+    super(element, options);
+    this.childControl = new ChildControlHandler(this);
   }
 }
