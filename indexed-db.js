@@ -168,6 +168,17 @@ export class IDB {
   /**
    * Get all records from a specific 
    * @param {*} storeName 
+   * @param {string} keyStart 
+   * @returns {Promise<any[]>}
+   */
+  async getAllStartingWith(storeName, keyStart) {
+    let key = IDBKeyRange.bound(keyStart, keyStart + '~~~~~');
+    return await this.doCmd(storeName, s => s.getAll(key));
+  }
+
+  /**
+   * Get all records from a specific 
+   * @param {*} storeName 
    * @returns {Promise<any[]>}
    */
   async getAll (storeName) {

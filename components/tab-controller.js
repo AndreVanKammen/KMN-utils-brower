@@ -38,22 +38,9 @@ const cssStr = /*css*/`
   height: 100%;
 }
 .${kmnClassName}.tabButton {
-  background: var(--subHeaderBackground);
-  color: var(--subHeaderColor);
-  border: none;
-  border-right: 1px solid black;
-  outline: none;
   display: inline-block;
   padding: 0px 12px;
   height: 100%;
-}
-.${kmnClassName}.tabButton:hover {
-  background: var(--activeColor);
-  color: white;
-}
-.${kmnClassName}.tabButton.selected {
-  background: var(--backgroundColor);
-  outline: 1.5px solid var(--activeColor);
 }
 /*!css*/`
 
