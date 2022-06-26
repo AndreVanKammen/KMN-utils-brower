@@ -18,12 +18,14 @@ export class Splitter {
    * @param {HTMLElement} parentElement 
    * @param {string} cssVar 
    * @param {boolean} isHorizontal 
+   * @param {boolean} isReversed
    */
-  initializeDOM(parentElement, cssVar, isHorizontal) {
+  initializeDOM(parentElement, cssVar, isHorizontal, isReversed) {
     addCSS('splitter', cssStr);
     this.parentElement = parentElement;
     this.cssVar = cssVar;
     this.isHorizontal = isHorizontal;
+    this.isReversed = isReversed;
     this.splitterElement = this.parentElement.$el({
       cls: isHorizontal ? 'h-splitter' : 'v-splitter'
     });
@@ -36,6 +38,10 @@ export class Splitter {
       // @ts-ignore Yes it does exist!!!
       event.target.setPointerCapture(event.pointerId);
       startVal = this.parentElement.clientHeight;// Number.parseFloat(document.documentElement.style.getPropertyValue(this.cssVar));
+      if (this.isReversed) {
+        startVal = window.innerHeight - startVal;
+        console.log('.');
+      }
       mouseDownX = event.screenX;
       mouseDownY = event.screenY;
       mouseIsDown = true;
@@ -50,6 +56,9 @@ export class Splitter {
     this.splitterElement.onpointermove = (event) => {
       if (mouseIsDown) {
         let deltaY = event.screenY - mouseDownY;
+        if (this.isReversed) {
+          deltaY *= -1;
+        }
         document.documentElement.style.setProperty(this.cssVar, (startVal - deltaY).toFixed(0) + "px");
         console.log('move');
       }
