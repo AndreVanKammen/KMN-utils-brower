@@ -144,8 +144,9 @@ const cssStr = /*css*/`
   width: calc(100% - 12px - var(--gutterWidth));
   background: var(--codeBackground);
   color: var(--codeText);
-  font-family: 'Fira Code', monospace;
-  font-size: 18px;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 16px;
+  line-height: 125%;
   overflow-x: auto;
   overflow-y: visible;
   white-space: pre;
