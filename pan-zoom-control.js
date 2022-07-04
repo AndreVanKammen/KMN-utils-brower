@@ -688,8 +688,10 @@ class ChildControlHandler {
       let x = (px * child.parentWidth - child.myXOffset) / child.myWidth;
       // let y = py / child.heightFactor - child.myYOffset;
       let y = (py * child.parentHeight - child.myYOffset) / child.myHeight;
-      if ((x >= -0.0 && x <= 1.0 &&
-        y >= -0.0 && y < 1.0) || child.pointerDown || child.capturedControl) {
+      let xm = 0.01 / child.xScale;
+      let ym = 0.01 / child.yScale;
+      if ((x >= -xm && x <= (1.0 + xm) &&
+        y >= -ym && y < (1.0+ym)) || child.pointerDown || child.capturedControl) {
         result.push({ child, x, y });
         child.pointerDown = this.controller.pointerDown;
         if (!child.pointerInside) {
