@@ -7,6 +7,7 @@ import { createKMNElement } from "../../KMN-varstack-browser/utils/html-utils.js
 class PanelBase {
   constructor(defaultOptions, options) {
     this.options = { ...defaultOptions, ...options };
+    /** @type {HTMLElement} */
     this.parentElement = null;
     this.isVisible = false;
     this.preferredWidth = undefined;

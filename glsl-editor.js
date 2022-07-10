@@ -118,12 +118,15 @@ const cssStr = /*css*/`
   background: var(--backgroundColor);
   overflow: hidden;
 }
+.${kmnClassName}.codeFont {
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 16.2px;
+  line-height: 24px;
+}
 .${kmnClassName}.codeGutter .${kmnClassName}.lineNumber {
   display: block;
   color: var(--lineNumber);
   padding: 0 8px;
-  font-family: 'Fira Code', monospace;
-  font-size: 18px;
   top: 0;
 }
 .${kmnClassName}.codeGutter .${kmnClassName}.lineNumber .${kmnClassName}.error {
@@ -144,9 +147,6 @@ const cssStr = /*css*/`
   width: calc(100% - 12px - var(--gutterWidth));
   background: var(--codeBackground);
   color: var(--codeText);
-  font-family: 'Fira Code', 'Consolas', monospace;
-  font-size: 16px;
-  line-height: 125%;
   overflow-x: auto;
   overflow-y: visible;
   white-space: pre;
@@ -225,7 +225,9 @@ class GlslEditor {
 
     this.codeElement = this.parentElement.$el({ cls: 'codeElement' });
     this.gutterElement = this.codeElement.$el({ cls: 'codeGutter' });
+    this.gutterElement.classList.add('codeFont');
     this.textElement = this.codeElement.$el({ cls: 'codeEditor' });
+    this.textElement.classList.add('codeFont');
 
     this.statusElement = this.parentElement.$el({ cls: 'codeStatus' });
     this.codeStatusLabel = this.statusElement.$el({ cls: 'codeStatusLabel' });
