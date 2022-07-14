@@ -25,7 +25,7 @@ export class PointerTracker {
     this.element.addEventListener('contextmenu',this._handlecontextmenu);
   }
 
-  remove() {
+  dispose() {
     this.element.removeEventListener('pointerenter',this._handlePointerEnter); 
     this.element.removeEventListener('pointerleave',this._handlePointerLeave);
     this.element.removeEventListener('pointerover',this._handlePointerOver);
