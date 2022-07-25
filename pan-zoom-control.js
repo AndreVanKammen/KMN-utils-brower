@@ -716,6 +716,13 @@ class ChildControlHandler {
   add(childControl) {
     this.children.push(childControl);
   }
+
+  remove(childControl) {
+    let ix = this.children.indexOf(childControl);
+    if (ix >= 0) {
+      this.children.splice(ix, 1);
+    }
+  }
 }
 
 export class PanZoomParent extends PanZoomControl {
