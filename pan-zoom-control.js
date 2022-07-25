@@ -162,7 +162,6 @@ export class PanZoomBase {
     this.pointerInside = false;
 
     this._updateSmoothBound = this._updateSmooth.bind(this);
-    beforeAnimationFrame(this._updateSmoothBound);
   }
 
   _updateSmooth(time) {
@@ -343,6 +342,9 @@ export class PanZoomChild extends PanZoomBase {
     this.xScaleSmooth = this.xScale;
     this.yOffsetSmooth = this.yOffset;
     this.yScaleSmooth = this.yScale;
+    for (let childControl of this.childControl.children) {
+      childControl.updateSmooth();
+    }
   }
 
   updateCursor(cursor) {
@@ -546,6 +548,7 @@ export default class PanZoomControl extends PanZoomBase {
         }
       }
     }
+    beforeAnimationFrame(this._updateSmoothBound);
   }
 
   restrictScale() {
@@ -733,5 +736,12 @@ export class PanZoomParent extends PanZoomControl {
   constructor(element, options) {
     super(element, options);
     this.childControl = new ChildControlHandler(this);
+  }
+
+  updateSmooth(time) {
+    super.updateSmooth(time);
+    for (let childControl of this.childControl.children) {
+      childControl.updateSmooth();
+    }
   }
 }
