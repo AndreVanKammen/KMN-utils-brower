@@ -464,6 +464,7 @@ export default class PanZoomControl extends PanZoomBase {
     // Pan control
     {
       let mouseDown = false;
+      let mouseDownIsOurs = false;
       let mouseMoved = false;
       let mouseDownTime = performance.now();
       let mouseDownX = 0.0;
@@ -480,8 +481,9 @@ export default class PanZoomControl extends PanZoomBase {
         mouseDownX = event.offsetX / this.element.clientWidth;
         mouseDownY = 1.0 - (event.offsetY / this.element.clientHeight);
         mouseMoved = false;
-        if (!this.onDown(this.mouseX, this.mouseY)) {
-          mouseDown = true;
+        mouseDown = true;
+        mouseDownIsOurs = !this.onDown(this.mouseX, this.mouseY);
+        if (mouseDownIsOurs) {
           this.isPanning = true;
           mouseDownTrackPosX = this.xOffset;
           mouseDownTrackPosY = this.yOffset;
@@ -512,11 +514,11 @@ export default class PanZoomControl extends PanZoomBase {
         const deltaY = (newMouseY - mouseDownY);
         if (mouseDown && (Math.abs(event.offsetX) > 2.0 || Math.abs(event.offsetY) > 2.0)) {
           let clickTime = (performance.now() - mouseDownTime);
-          if (clickTime > 200 && (Math.abs(event.offsetX) > clickTime || Math.abs(event.offsetY) > clickTime)) {
+          if (clickTime > 200 || (Math.abs(event.offsetX) > clickTime || Math.abs(event.offsetY) > clickTime)) {
             mouseMoved = true;
           }
         }
-        if (mouseDown && !this.haltDragging) {
+        if (mouseDownIsOurs && !this.haltDragging) {
           this.xOffset = mouseDownTrackPosX - deltaX / this.xScale;
           this.yOffset = mouseDownTrackPosY - deltaY / this.yScale;
           this.restrictPos();
