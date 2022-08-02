@@ -535,6 +535,7 @@ export default class PanZoomControl extends PanZoomBase {
         this.onUp(this.mouseX, this.mouseY);
         this.isPanning = false;
         mouseDown = false;
+        mouseDownIsOurs = false;
         this.pointerDown = false;
       };
 
