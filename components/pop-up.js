@@ -71,10 +71,13 @@ const cssStr = /*css*/`
 }
 `
 
+let currentPopup = null;
+
 class PopUp {
   constructor() {
     this.panel = null;
     this.popArea = null;
+    this.onHide = () => { };
   }
 
   /**
@@ -97,39 +100,62 @@ class PopUp {
       this.popArea.classList.add('popupArea');
       this.popArea.$setVisible(false);
       document.body.appendChild(this.popArea);
+      this.popArea.onclick = () => {
+        if (currentPopup) {
+          currentPopup.hide();
+        }
+      }
     }
-    this.parentPanel = this.popArea.$el({cls:'popupContent'});
-    this.parentPanel.$setVisible(false);
+    if (this.panel.options.hollywood) {
+      this.panel.initializeDOM(this.popArea);
+    } else {
+      this.parentPanel = this.popArea.$el({ cls: 'popupContent' });
+      this.parentPanel.$setVisible(false);
 
-    if (!isNaN(this.panel.preferredWidth)) {
-      this.parentPanel.style.width = this.panel.preferredWidth + 'px';
+      if (!isNaN(this.panel.preferredWidth)) {
+        this.parentPanel.style.width = this.panel.preferredWidth + 'px';
+      }
+      if (this.panel.preferredHeight) {
+        this.parentPanel.style.height = this.panel.preferredHeight + 'px';
+      }
+
+      this.header = this.parentPanel.$el({ cls: 'popupHeader' });
+      this.title = this.header.$el({ cls: 'popupTitle' });
+      this.addButton = this.header.$el({ cls: "close" });
+      this.addButton.appendChild(svgIcon("M4,4L20,20M20,4L4,20", 30, 30));
+      this.addButton.onclick = this.hide.bind(this);
+      this.panelEl = this.parentPanel.$el({ cls: 'popupPanel' });
+
+      this.parentPanel.addEventListener('click', (event) => event);
+      this.panel.initializeDOM(this.panelEl);
     }
-    if (this.panel.preferredHeight) { 
-      this.parentPanel.style.height = this.panel.preferredHeight + 'px';
-    }
-
-    this.header = this.parentPanel.$el({cls:'popupHeader'});
-    this.title = this.header.$el({cls:'popupTitle'});
-    this.addButton = this.header.$el({ cls: "close" });
-    this.addButton.appendChild(svgIcon("M4,4L20,20M20,4L4,20",30,30));
-    this.addButton.onclick = this.hide.bind(this);
-    this.panelEl = this.parentPanel.$el({cls:'popupPanel'});
-
-    this.parentPanel.addEventListener('click',(event) => event);
-    this.panel.initializeDOM(this.panelEl);
   }
 
   show(str) {
-    this.title.innerText = str;
-    this.popArea.$setVisible(true);
-    this.parentPanel.$setVisible(true);
+    currentPopup = this;
+
+    if (this.title) {
+      this.title.innerText = str;
+    }
+    if (this.popArea) {
+      this.popArea.$setVisible(true);
+    }
+    if (this.parentPanel) {
+      this.parentPanel.$setVisible(true);
+    }
     return this.panel.show();
   }
 
   hide() {
+    currentPopup = null;
     this.panel.hide();
-    this.parentPanel.$setVisible(false);
-    this.popArea.$setVisible(false);
+    if (this.parentPanel) {
+      this.parentPanel.$setVisible(false);
+    }
+    if (this.popArea) {
+      this.popArea.$setVisible(false);
+    }
+    this.onHide();
   }
 }
 /**
