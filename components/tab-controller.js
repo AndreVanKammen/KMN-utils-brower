@@ -37,7 +37,12 @@ const cssStr = /*css*/`
   top: 0;
   height: 100%;
 }
+.${kmnClassName}.tabButton.selected {
+  border: none;
+  background: rgb(67, 67, 67);
+}
 .${kmnClassName}.tabButton {
+  background: black;
   display: inline-block;
   padding: 0px 12px;
   height: 100%;
