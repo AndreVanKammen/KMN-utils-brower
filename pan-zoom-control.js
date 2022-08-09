@@ -80,10 +80,6 @@ export class ControlHandlerBase {
     return this._isCaptured = this.onCaptureChange(this, true);
   }
 
-  get isEnabled() {
-    return this._isVisible && this._isEnabled;
-  }
-
   cleanupForDisabled() {
     if (this._isCaptured) {
       this.releaseControl();
@@ -94,6 +90,10 @@ export class ControlHandlerBase {
     this.setCursor('');
   }
 
+  get isEnabled() {
+    return this._isVisible && this._isEnabled;
+  }
+
   set isEnabled(x) {
     if (this._isEnabled !== x) {
       this._isEnabled = x;
@@ -102,7 +102,6 @@ export class ControlHandlerBase {
       }
     }
   }
-
 
   get isVisible() {
     return this._isVisible;
@@ -116,7 +115,6 @@ export class ControlHandlerBase {
       }
     }
   }
-
 }
 
 export class PanZoomBase {
