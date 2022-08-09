@@ -100,9 +100,11 @@ class PopUp {
       this.popArea.classList.add('popupArea');
       this.popArea.$setVisible(false);
       document.body.appendChild(this.popArea);
-      this.popArea.onclick = () => {
-        if (currentPopup) {
-          currentPopup.hide();
+      this.popArea.onmousedown = (evt) => {
+        if (evt.target === this.popArea) {
+          if (currentPopup) {
+            currentPopup.hide();
+          }
         }
       }
     }
