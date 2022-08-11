@@ -57,7 +57,7 @@ const cssStr = /*css*/`
 
 .${kmnClassName}.popupHeader .close:hover {
   background: var(--activeHoverColor);
-  stroke: white;
+  stroke: black;
   stroke-width: 3px;
 }
 
@@ -101,7 +101,7 @@ class PopUp {
       this.popArea.$setVisible(false);
       document.body.appendChild(this.popArea);
       this.popArea.onmousedown = (evt) => {
-        if (evt.target === this.popArea) {
+        if (evt.target === this.popArea || this.panel.options.hollywood) {
           if (currentPopup) {
             currentPopup.hide();
           }
