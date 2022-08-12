@@ -12,6 +12,7 @@ class PanelBase {
     this.isVisible = false;
     this.preferredWidth = undefined;
     this.preferredHeight = undefined;
+    this.popUp = undefined;
   }
   get DOMInitialized() {
     return !!this.parentElement;

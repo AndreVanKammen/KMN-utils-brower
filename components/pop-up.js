@@ -145,6 +145,7 @@ class PopUp {
     if (this.parentPanel) {
       this.parentPanel.$setVisible(true);
     }
+    this.panel.popUp = this;
     return this.panel.show();
   }
 
