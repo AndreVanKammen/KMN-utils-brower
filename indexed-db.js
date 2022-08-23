@@ -166,6 +166,16 @@ export class IDB {
   }
 
   /**
+   * Get a record from a spcific store
+   * @param {string} storeName 
+   * @param {string} key
+   * @returns {Promise<any>}
+   */
+   async deleteStoreValue (storeName, key) {
+    return await this.doCmd(storeName, s => s.delete(key));
+  }
+
+  /**
    * Get all records from a specific 
    * @param {*} storeName 
    * @param {string} keyStart 
