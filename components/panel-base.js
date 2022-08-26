@@ -13,7 +13,9 @@ class PanelBase {
     this.preferredWidth = undefined;
     this.preferredHeight = undefined;
     this.popUp = undefined;
+    this.onHide = () => { };
   }
+
   get DOMInitialized() {
     return !!this.parentElement;
   }
@@ -46,8 +48,11 @@ class PanelBase {
   }
 
   hide() {
-    this.isVisible = false;
-    this.updateHiddenClass();
+    if (this.isVisible) {
+      this.isVisible = false;
+      this.onHide();
+      this.updateHiddenClass();
+    }
     // console.log('hide: ',this.__proto__.constructor.name);
   }
 }

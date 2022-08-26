@@ -130,6 +130,9 @@ class PopUp {
 
       this.parentPanel.addEventListener('click', (event) => event);
       this.panel.initializeDOM(this.panelEl);
+      this.panel.onHide = () => {
+        this.hide();
+      }
     }
   }
 
