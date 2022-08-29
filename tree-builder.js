@@ -30,6 +30,26 @@ const cssStr = /*css*/`.${kmnClassName}.tree-main {
 .${kmnClassName}.tree-main li.item.selected {
   background: var(--subHeaderBackground);
 }
+/* From: https://www.w3schools.com/howto/howto_js_treeview.asp */
+.${kmnClassName}.caret {
+  margin: 8px 0 8px 0;
+  cursor: pointer;
+  user-select: none; /* Prevent text selection */
+}
+
+.${kmnClassName}.caret::before {
+  content: "\\25B6";
+  color: var(--subHeaderColor);
+  font-size: 10px;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 6px 2px -10px;
+  padding: auto;
+}
+
+.${kmnClassName}.caret-down::before {
+  transform: rotate(90deg);
+}
 `;
 
 export class TreeBuilder {
@@ -40,6 +60,8 @@ export class TreeBuilder {
     this.listElement = element.$el({ tag: 'ul', cls: className });
     this.items = [];
     this.subTrees = [];
+    this.isVisible = level <= 1;
+    this.listElement.$setVisible(this.isVisible);
   }
   _addItem(str, action = null) {
     let itemEl = this.listElement.$el({ tag: 'li', cls: `level-${this.level}` });
@@ -56,13 +78,11 @@ export class TreeBuilder {
     }
     return itemEl;
   }
-
   addItem(str, action = null) {
     let itemEl = this._addItem(str, action);
     itemEl.classList.add('item');
     return itemEl;
   }
-
   setSelected(itemEl) {
     this.listElement.$clearSelected();
     for (let st of this.subTrees) {
@@ -72,14 +92,25 @@ export class TreeBuilder {
       itemEl.$setSelected();
     }
   }
-
   addSubMenu(str, className, action = null) {
-    let itemEl = this._addItem(str, action);
-    let subTree = new TreeBuilder(itemEl, className, this.level + 1);
+    let subTree;
+    let itemEl = this._addItem(str, (itemEl) => {
+      if (this.level < 1) {
+        return
+      }
+      subTree.isVisible = !subTree.isVisible;
+      console.log('subTree.isVisible', subTree.isVisible);
+      subTree.listElement.$setVisible(subTree.isVisible);
+      itemEl.classList.toggle("caret-down", subTree.isVisible, subTree.listElement);
+      action && action(itemEl);
+    });
+    if (this.level >= 1) {
+      itemEl.classList.add('caret');
+    }
+    subTree = new TreeBuilder(itemEl, className, this.level + 1);
     this.subTrees.push(subTree);
     return subTree;
   }
-
   clear() {
     for (let subTree of this.subTrees) {
       subTree.dispose();
@@ -90,7 +121,6 @@ export class TreeBuilder {
     this.subTrees = [];
     this.items = [];
   }
-
   dispose() {
     this.clear();
   }
