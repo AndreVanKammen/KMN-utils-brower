@@ -69,9 +69,9 @@ export class TreeBuilder {
     this.items.push(itemEl);
     if (action) {
       itemEl.onclick = (evt) => {
-        action(itemEl);
         evt.preventDefault();
         evt.stopPropagation();
+        action(itemEl);
         return true;
       };
       itemEl.style.cursor = 'pointer';
