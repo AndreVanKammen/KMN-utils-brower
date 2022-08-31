@@ -100,13 +100,13 @@ class PopUp {
       this.popArea.classList.add('popupArea');
       this.popArea.$setVisible(false);
       document.body.appendChild(this.popArea);
-      this.popArea.onmousedown = (evt) => {
-        if (evt.target === this.popArea || this.panel.options.hollywood) {
-          if (currentPopup) {
-            currentPopup.hide();
-          }
-        }
-      }
+      // this.popArea.onmousedown = (evt) => {
+      //   if (evt.target === this.popArea || this.panel.options.hollywood) {
+      //     if (currentPopup) {
+      //       currentPopup.hide();
+      //     }
+      //   }
+      // }
     }
     if (this.panel.options.hollywood) {
       this.panel.initializeDOM(this.popArea);
