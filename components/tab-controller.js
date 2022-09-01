@@ -8,7 +8,7 @@ import PanelBase from './panel-base.js';
 
 const cssStr = /*css*/`
 .${kmnClassName} {
-  --tabHeaderHeight: 32px;
+  --tabHeaderHeight: 48px;
   --codeBackground: rgb(24, 24, 24);
   --codeText: rgb(200,200,200);
 }
