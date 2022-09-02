@@ -10,7 +10,7 @@ const cssStr = /*css*/`.${kmnClassName}.tree-main {
   margin: 4px 0;
 }
 .${kmnClassName}.tree-main li.kmn.level-0 {
-  color: gray;
+  color: var(--subHeaderColor);
   margin: 24px 0 12px 0;
 }
 .${kmnClassName}.tree-main li.kmn.level-1 ul.kmn {
@@ -18,10 +18,10 @@ const cssStr = /*css*/`.${kmnClassName}.tree-main {
   margin: 4px 0 0 0;
 }
 .${kmnClassName}.tree-main li.kmn.level-1 {
-  color: var(--subHeaderColor);
+  color: white;
 }
 .${kmnClassName}.tree-main li.kmn.item {
-  color: var(--subHeaderColor);
+  color: white;
   padding: 8px 8px;
 }
 .${kmnClassName}.tree-main li.item:hover {
