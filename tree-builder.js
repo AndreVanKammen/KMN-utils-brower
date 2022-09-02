@@ -6,21 +6,22 @@ const cssStr = /*css*/`.${kmnClassName}.tree-main {
 }
 .${kmnClassName}.tree-main ul.kmn {
   list-style-type: none;
-  padding-inline-start: 24px;
+  padding-inline-start: 11px;
   margin: 4px 0;
 }
 .${kmnClassName}.tree-main li.kmn.level-0 {
   color: var(--subHeaderColor);
-  margin: 24px 0 12px 0;
+  margin: 16px 0 12px 0;
 }
 .${kmnClassName}.tree-main li.kmn.level-1 ul.kmn {
   padding-inline-start: 12px;
-  margin: 4px 0 0 0;
+  margin: 4px 0 16px 0;
 }
 .${kmnClassName}.tree-main li.kmn.level-1 {
   color: white;
 }
 .${kmnClassName}.tree-main li.kmn.item {
+  white-space: nowrap;
   color: white;
   padding: 8px 8px;
 }
@@ -32,7 +33,7 @@ const cssStr = /*css*/`.${kmnClassName}.tree-main {
 }
 /* From: https://www.w3schools.com/howto/howto_js_treeview.asp */
 .${kmnClassName}.caret {
-  margin: 8px 0 8px 0;
+  margin: 8px 0 16px 0;
   cursor: pointer;
   user-select: none; /* Prevent text selection */
 }
