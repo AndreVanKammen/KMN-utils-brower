@@ -2,10 +2,10 @@
 export class PointerTracker {
 
   /**
-   * @param {Element} element 
+   * @param {EventTarget} element 
    * @param {*} options 
    */
-  constructor (element, options = {}) {
+  constructor(element, options = { cancelEvents: true }) {
     this.element = element;
     this.options = options;
 
@@ -40,8 +40,10 @@ export class PointerTracker {
   
   /** @param {PointerEvent} evt */
   stopEvent(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
+    if (this.options.cancelEvents) {
+      evt.stopPropagation();
+      evt.preventDefault();
+    }
   }
 
   getLastPrimary() {
@@ -73,8 +75,8 @@ export class PointerTracker {
   updatePointerInfo(pointerInfo, evt) {
     pointerInfo.pointerType = evt.pointerType
     pointerInfo.isPrimary = evt.isPrimary
-    pointerInfo.currentX = evt.offsetX;
-    pointerInfo.currentY = evt.offsetY;
+    pointerInfo.currentX = evt.pageX; // pageX;
+    pointerInfo.currentY = evt.pageY; //pageY;
     pointerInfo.pointerId = evt.pointerId;
     if (pointerInfo.pointerType.toLowerCase() === 'pen') {
       pointerInfo.tangentialPressure = evt.tangentialPressure
@@ -92,8 +94,7 @@ export class PointerTracker {
     return pointerInfo
   }
   _handlecontextmenu = (evt) => {
-    evt.stopPropagation();
-    evt.preventDefault();
+    this.stopEvent(evt);
     return false;
   }
 
@@ -126,7 +127,7 @@ export class PointerTracker {
     }
     // @ts-ignore yes it exists
     evt.target.setPointerCapture(evt.pointerId);
-    pointerInfo.buttons[evt.button] = { down: true, x: evt.offsetX, y: evt.offsetY };
+    pointerInfo.buttons[evt.button] = { down: true, x: evt.pageX, y: evt.pageY };
   }
 
   /** @param {PointerEvent} evt */
@@ -138,7 +139,7 @@ export class PointerTracker {
     }
     // @ts-ignore yes it exists on target which is an element
     evt.target.releasePointerCapture(evt.pointerId);
-    pointerInfo.buttons[evt.button] = { down: false, x: evt.offsetX, y: evt.offsetY };
+    pointerInfo.buttons[evt.button] = { down: false, x: evt.pageX, y: evt.pageY };
   }
 
   /** @param {PointerEvent} evt */
