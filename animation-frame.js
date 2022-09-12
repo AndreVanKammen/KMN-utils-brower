@@ -33,6 +33,7 @@ export function animationFrame(callback) {
   if (rafHandle<0) {
     rafHandle = window.requestAnimationFrame(handleAnimationFrames);
   }
+  return rafHandle;
 }
 
 export function beforeAnimationFrame(callback) {
@@ -40,4 +41,5 @@ export function beforeAnimationFrame(callback) {
   if (rafHandle<0) {
     rafHandle = window.requestAnimationFrame(handleAnimationFrames);
   }
+  return rafHandle;
 }
