@@ -14,10 +14,10 @@ export class Splitter {
   constructor() {
   }
   /**
-   * 
-   * @param {HTMLElement} parentElement 
-   * @param {string} cssVar 
-   * @param {boolean} isHorizontal 
+   *
+   * @param {HTMLElement} parentElement An element to place the splitter element in
+   * @param {string} cssVar
+   * @param {boolean} isHorizontal
    * @param {boolean} isReversed
    */
   initializeDOM(parentElement, cssVar, isHorizontal, isReversed) {
@@ -37,7 +37,7 @@ export class Splitter {
     this.splitterElement.onpointerdown = (event) => {
       // @ts-ignore Yes it does exist!!!
       event.target.setPointerCapture(event.pointerId);
-      startVal = this.parentElement.clientHeight;// Number.parseFloat(document.documentElement.style.getPropertyValue(this.cssVar));
+      startVal = window.innerHeight - this.splitterElement.getBoundingClientRect().y;// sizeElement.clientHeight;// Number.parseFloat(document.documentElement.style.getPropertyValue(this.cssVar));
       if (this.isReversed) {
         startVal = window.innerHeight - startVal;
         console.log('.');
