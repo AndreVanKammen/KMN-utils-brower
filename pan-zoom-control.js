@@ -22,25 +22,25 @@ const defaultOptions = {
 }
 
 export class ControlHandlerBase {
-  handleClick (x,y) { 
-    return false 
+  handleClick (x,y) {
+    return false
   }
-  handleDblClick (x,y) { 
-    return false 
+  handleDblClick (x,y) {
+    return false
   }
-  handleMove (x,y) { 
-    return false 
+  handleMove (x,y) {
+    return false
   }
-  handleDown (x,y) { 
-    return false 
+  handleDown (x,y) {
+    return false
   }
-  handleLeave (x,y) { 
+  handleLeave (x,y) {
   }
-  handleUp (x,y) { 
-    return false 
+  handleUp (x,y) {
+    return false
   }
-  handleKey (x,y,up) { 
-    return false 
+  handleKey (x,y,up) {
+    return false
   }
   constructor() {
     this._isVisible = true;
@@ -48,13 +48,21 @@ export class ControlHandlerBase {
     this._isCaptured = false;
     this._isFocused = false; // Set from _controller
     this._controller = null;
+    this._isSelected = false;
     this.onCaptureChange = (chb, value) => this._controller?.handleCaptureChange(chb, value);
     this.onFocusChange = (chb, value) => this._controller?.handleFocusChange(chb, value);
     this.onCursorChange = (chb, value) => this._controller?.handleCursorChange(chb, value);
     this._cursor = '';
-    this.isSelected = false;
     // TODO: This is the isFocused from the toplevel, needs better implementation to work with _isFocussed
     this.isFocused = false;
+  }
+
+  get isSelected() {
+    return this._isSelected;
+  }
+
+  set isSelected(x) {
+    this._isSelected = x;
   }
 
   setCursor(cursor) {
@@ -127,10 +135,10 @@ export class PanZoomBase {
 
     this.xOffset = 0.0;
     this.yOffset = 0.0;
-    
+
     this.xOffsetSmooth = 0.0;
     this.yOffsetSmooth = 0.0;
-    
+
     this.easeFactor = 0.7;
     this.currentEaseFactor = 0.7;
     this.lastTime = 0.0;
@@ -164,7 +172,7 @@ export class PanZoomBase {
 
   _updateSmooth(time) {
     this.updateSmooth(time)
- 
+
     beforeAnimationFrame(this._updateSmoothBound);
   }
 
@@ -208,7 +216,7 @@ export class PanZoomBase {
 
   /**
    * Adds a control handler to be used for handling the controls
-   * @param {ControlHandlerBase} controlHandler 
+   * @param {ControlHandlerBase} controlHandler
    */
   addHandler(controlHandler) {
     // Last add 1st handle because it's on top
@@ -254,7 +262,7 @@ export class PanZoomBase {
 
   /**
    * Adds a control handler to be used for handling the controls
-   * @param {ControlHandlerBase} controlHandler 
+   * @param {ControlHandlerBase} controlHandler
    */
   removeHandler(controlHandler) {
     let ix = this.handlers.indexOf(controlHandler);
@@ -298,13 +306,13 @@ export class PanZoomBase {
   }
 
   restrictPos() {
-    
+
   }
 }
 export class PanZoomChild extends PanZoomBase {
   /**
-   * 
-   * @param {PanZoomBase} parent 
+   *
+   * @param {PanZoomBase} parent
    */
   constructor(parent) {
     super();
@@ -326,7 +334,7 @@ export class PanZoomChild extends PanZoomBase {
 
   updateSmooth(time) {
     // update() {
-    // TODO Smoothing of child movement 
+    // TODO Smoothing of child movement
     this.myXOffsetSmooth += (this.myXOffset - this.myXOffsetSmooth) * 0.15;
     this.myYOffsetSmooth += (this.myYOffset - this.myYOffsetSmooth) * 0.15;
     this.widthFactor = this.myWidth / this.parentWidth;
@@ -352,8 +360,8 @@ export class PanZoomChild extends PanZoomBase {
 
 export default class PanZoomControl extends PanZoomBase {
   /**
-   * @param {HTMLElement} element 
-   * @param {Partial<typeof defaultOptions>} options 
+   * @param {HTMLElement} element
+   * @param {Partial<typeof defaultOptions>} options
    */
   constructor(element, options) {
     super();
@@ -508,7 +516,7 @@ export default class PanZoomControl extends PanZoomBase {
         this.onMove(this.mouseX, this.mouseY);
         let newMouseX = event.offsetX / this.element.clientWidth;
         let newMouseY = 1.0 - (event.offsetY / this.element.clientHeight);
-        const deltaX = (newMouseX - mouseDownX);  
+        const deltaX = (newMouseX - mouseDownX);
         const deltaY = (newMouseY - mouseDownY);
         if (mouseDown && (Math.abs(event.offsetX) > 2.0 || Math.abs(event.offsetY) > 2.0)) {
           let clickTime = (performance.now() - mouseDownTime);
@@ -561,7 +569,7 @@ export default class PanZoomControl extends PanZoomBase {
     // Don't restrict pos while scaling
     if (Math.abs(this.xScale - this.xScaleSmooth) < (0.01 * this.xScaleSmooth)) {
       this.zoomCenterX = (0.5 + this.zoomCenterX) * 0.5;
-  
+
       let maxXPos = this.options.maxXPos;
       if (this.options.includeSizeInMaxPos) {
         maxXPos -= this.options.minScreenInViewX / this.xScale;
@@ -610,8 +618,8 @@ export default class PanZoomControl extends PanZoomBase {
 
 class ChildControlHandler {
   /**
-   * 
-   * @param {PanZoomBase} controller 
+   *
+   * @param {PanZoomBase} controller
    */
   constructor(controller) {
     this.controller = controller;
@@ -645,37 +653,37 @@ class ChildControlHandler {
       this.controller,
       (c, x, y) => c.onClick(x, y),
       (h, x, y) => h.handleClick && h.handleClick(x, y));
-    
+
     this.controller.onDblClick = eventHandler.bind(
       this.controller,
       (c, x, y) => c.onDblClick(x, y),
       (h, x, y) => h.handleDblClick && h.handleDblClick(x, y));
-    
+
     this.controller.onMove = eventHandler.bind(
       this.controller,
       (c, x, y) => c.onMove(x, y),
       (h, x, y) => h.handleMove && h.handleMove(x, y));
-    
+
     this.controller.onLeave = eventHandler.bind(
       this.controller,
       (c, x, y) => c.onLeave(x, y),
       (h, x, y) => h.handleLeave && h.handleLeave(x, y));
-    
+
     this.controller.onDown = eventHandler.bind(
       this.controller,
       (c, x, y) => c.onDown(x, y),
       (h, x, y) => h.handleDown && h.handleDown(x, y));
-    
+
     this.controller.onUp = eventHandler.bind(
       this.controller,
       (c, x, y) => c.onUp(x, y),
       (h, x, y) => h.handleUp && h.handleUp(x, y));
-    
+
     this.controller.onKeyDown = eventHandler.bind(
       this.controller,
       (c, x, y) => c.onKeyDown(x, y),
       (h, x, y) => h.handleKey && h.handleKey(x, y, false));
-    
+
     this.controller.onKeyUp = eventHandler.bind(
       this.controller,
       (c, x, y) => c.onKeyUp(x, y),
@@ -714,8 +722,8 @@ class ChildControlHandler {
 
 
   /**
-   * 
-   * @param {PanZoomChild} childControl 
+   *
+   * @param {PanZoomChild} childControl
    */
   add(childControl) {
     this.children.push(childControl);
@@ -731,8 +739,8 @@ class ChildControlHandler {
 
 export class PanZoomParent extends PanZoomControl {
   /**
-   * @param {HTMLElement} element 
-   * @param {Partial<typeof defaultOptions>} options 
+   * @param {HTMLElement} element
+   * @param {Partial<typeof defaultOptions>} options
    */
   constructor(element, options) {
     super(element, options);
