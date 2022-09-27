@@ -2,8 +2,8 @@
 export class PointerTracker {
 
   /**
-   * @param {EventTarget} element 
-   * @param {*} options 
+   * @param {EventTarget} element
+   * @param {*} options
    */
   constructor(element, options = { cancelEvents: true }) {
     this.element = element;
@@ -11,9 +11,9 @@ export class PointerTracker {
 
     this.lastPrimary = undefined;
 
-    // 
+    //
     this.pointerInfo = {}
-    this.element.addEventListener('pointerenter',this._handlePointerEnter); 
+    this.element.addEventListener('pointerenter',this._handlePointerEnter);
     this.element.addEventListener('pointerleave',this._handlePointerLeave);
     this.element.addEventListener('pointerover',this._handlePointerOver);
     this.element.addEventListener('pointerout',this._handlePointerOut);
@@ -26,7 +26,7 @@ export class PointerTracker {
   }
 
   dispose() {
-    this.element.removeEventListener('pointerenter',this._handlePointerEnter); 
+    this.element.removeEventListener('pointerenter',this._handlePointerEnter);
     this.element.removeEventListener('pointerleave',this._handlePointerLeave);
     this.element.removeEventListener('pointerover',this._handlePointerOver);
     this.element.removeEventListener('pointerout',this._handlePointerOut);
@@ -37,7 +37,7 @@ export class PointerTracker {
 
     this.element.removeEventListener('contextmenu',this._handlecontextmenu);
   }
-  
+
   /** @param {PointerEvent} evt */
   stopEvent(evt) {
     if (this.options.cancelEvents) {
@@ -47,7 +47,7 @@ export class PointerTracker {
   }
 
   getLastPrimary() {
-    if (this.lastPrimary) {
+    if (this.lastPrimary != null) {
       return this.pointerInfo[this.lastPrimary];
     } else {
       return {};
