@@ -1,4 +1,27 @@
 
+class ButtonData {
+  down = false;
+  x = 0;
+  y = 0;
+}
+class PointerData {
+  /** @type {Record<string,ButtonData>} */
+  buttons = {};
+  isOver = 0;
+  isInside = 0;
+  isDown = 0;
+  eventCount = 0;
+  pointerType = '';
+  isPrimary = false;
+  currentX = 0;
+  currentY = 0;
+  pointerId = '';
+  tangentialPressure = -1;
+  pressure = -1;
+  tiltX = -1;
+  tiltY = -1;
+  twist = -1;
+}
 export class PointerTracker {
 
   /**
@@ -11,8 +34,8 @@ export class PointerTracker {
 
     this.lastPrimary = undefined;
 
-    //
-    this.pointerInfo = {}
+    /** @type {Record<string,PointerData>} */
+    this.pointerData = {}
     this.element.addEventListener('pointerenter',this._handlePointerEnter);
     this.element.addEventListener('pointerleave',this._handlePointerLeave);
     this.element.addEventListener('pointerover',this._handlePointerOver);
@@ -20,13 +43,23 @@ export class PointerTracker {
     this.element.addEventListener('pointerdown',this._handlePointerDown);
     this.element.addEventListener('pointerup',this._handlePointerUp);
     this.element.addEventListener('pointermove',this._handlePointerMove);
-    this.element.addEventListener('pointerrawupdate',this._handlePointerRawUpdate);
+    this.element.addEventListener('pointerrawupdate', this._handlePointerRawUpdate);
 
     this.element.addEventListener('contextmenu',this._handlecontextmenu);
+
+    this.element.addEventListener('touchstart',this._handleTouchStart);
+    this.element.addEventListener('touchend',this._handleTouchEnd);
+    this.element.addEventListener('touchmove',this._handleTouchMove);
+    this.element.addEventListener('touchcancel',this._handleTouchEnd);
   }
 
   dispose() {
-    this.element.removeEventListener('pointerenter',this._handlePointerEnter);
+    this.element.removeEventListener('touchstart',this._handleTouchStart);
+    this.element.removeEventListener('touchend',this._handleTouchEnd);
+    this.element.removeEventListener('touchmove',this._handleTouchMove);
+    this.element.removeEventListener('touchcancel',this._handleTouchEnd);
+
+    this.element.removeEventListener('pointerenter', this._handlePointerEnter);
     this.element.removeEventListener('pointerleave',this._handlePointerLeave);
     this.element.removeEventListener('pointerover',this._handlePointerOver);
     this.element.removeEventListener('pointerout',this._handlePointerOut);
@@ -38,7 +71,7 @@ export class PointerTracker {
     this.element.removeEventListener('contextmenu',this._handlecontextmenu);
   }
 
-  /** @param {PointerEvent} evt */
+  /** @param {UIEvent} evt */
   stopEvent(evt) {
     if (this.options.cancelEvents) {
       evt.stopPropagation();
@@ -48,51 +81,86 @@ export class PointerTracker {
 
   getLastPrimary() {
     if (this.lastPrimary != null) {
-      return this.pointerInfo[this.lastPrimary];
+      return this.pointerData[this.lastPrimary];
     } else {
       return {};
     }
   }
 
-  /** @param {PointerEvent} evt */
-  getPointerInfo(evt) {
-    let pointerInfo = this.pointerInfo[evt.pointerId];
-    if (pointerInfo === undefined) {
-      pointerInfo = this.pointerInfo[evt.pointerId] = {};
-      pointerInfo.buttons = {};
-      pointerInfo.isOver = 0;
-      pointerInfo.isInside = 0;
-      pointerInfo.isDown = 0;
-      pointerInfo.eventCount = 0;
+  /**
+   *
+   * @param {PointerEvent | Touch} evt
+   * @returns {PointerData}
+   */
+  getPointerData(evt) {
+    let pointerId = (evt instanceof PointerEvent) ?
+      'p_' + evt.pointerId :
+      't_' + evt.identifier;
+    /** @type {PointerData} */
+    let pointerData = this.pointerData[pointerId];
+    if (pointerData === undefined) {
+      pointerData = this.pointerData[pointerId] = new PointerData();
+      pointerData.pointerId = pointerId;
     }
-    if (evt.isPrimary) {
-      this.lastPrimary = evt.pointerId
-    }
-    pointerInfo.eventCount++;
-    return pointerInfo
+    this.lastPrimary = pointerData.pointerId;
+    pointerData.eventCount++;
+    return pointerData
   }
 
-  updatePointerInfo(pointerInfo, evt) {
-    pointerInfo.pointerType = evt.pointerType
-    pointerInfo.isPrimary = evt.isPrimary
-    pointerInfo.currentX = evt.pageX; // pageX;
-    pointerInfo.currentY = evt.pageY; //pageY;
-    pointerInfo.pointerId = evt.pointerId;
-    if (pointerInfo.pointerType.toLowerCase() === 'pen') {
-      pointerInfo.tangentialPressure = evt.tangentialPressure
-      pointerInfo.pressure = evt.pressure
-      pointerInfo.tiltX = evt.tiltX
-      pointerInfo.tiltY = evt.tiltY
-      pointerInfo.twist = evt.twist
+  /**
+   *
+   * @param {PointerData} pointerData
+   * @param {PointerEvent | Touch} evt
+   * @param {String} type
+   */
+  updatePointerData(pointerData, evt, type = '') {
+    if (evt instanceof PointerEvent) {
+      pointerData.pointerType = evt.pointerType
+      pointerData.isPrimary = evt.isPrimary
+      pointerData.currentX = evt.pageX;
+      pointerData.currentY = evt.pageY;
+      pointerData.pressure = evt.pressure
+      if (pointerData.pointerType.toLowerCase() === 'pen') {
+        pointerData.tangentialPressure = evt.tangentialPressure
+        pointerData.tiltX = evt.tiltX
+        pointerData.tiltY = evt.tiltY
+        pointerData.twist = evt.twist
+      }
+    } else {
+      pointerData.pointerType = 'touch'
+      pointerData.isPrimary = false;
+      pointerData.currentX = evt.pageX;
+      pointerData.currentY = evt.pageY;
+      pointerData.pressure = evt.force;
+      if (type === 'start') {
+        pointerData.isInside = 1;
+        pointerData.isDown = 1;
+        pointerData.isOver = 1;
+        pointerData.buttons[0] = { down: true, x: evt.pageX, y: evt.pageY };
+      } else if (type === 'end') {
+        pointerData.isDown = 0;
+        pointerData.isInside = 1;
+        pointerData.isOver = 1;
+        pointerData.buttons[0] = { down: false, x: evt.pageX, y: evt.pageY };
+        setTimeout(() => {
+          pointerData.isInside = 0;
+          pointerData.isOver = 0;
+        }, 200);
+      }
+      // TODO: Probably sin cos of the angle
+      // pointerInfo.tiltX = evt.rotationAngle;
+      // pointerInfo.tiltY = evt.rotationAngle;
     }
+    // console.log('pointerData:', JSON.stringify( pointerData));
   }
 
   stopGetAndUpdate(evt) {
     this.stopEvent(evt);
-    let pointerInfo = this.getPointerInfo(evt)
-    this.updatePointerInfo(pointerInfo, evt);
-    return pointerInfo
+    let pointerData = this.getPointerData(evt)
+    this.updatePointerData(pointerData, evt);
+    return pointerData
   }
+
   _handlecontextmenu = (evt) => {
     this.stopEvent(evt);
     return false;
@@ -121,25 +189,29 @@ export class PointerTracker {
   /** @param {PointerEvent} evt */
   _handlePointerDown = (evt) => {
     // console.log('down');
-    let pointerInfo = this.stopGetAndUpdate(evt);
-    if (pointerInfo.buttons[evt.button]?.down !== true) {
-      pointerInfo.isDown++;
+    let pointerData = this.stopGetAndUpdate(evt);
+    if (pointerData.buttons[evt.button]?.down !== true) {
+      pointerData.isDown++;
     }
-    // @ts-ignore yes it exists
-    evt.target.setPointerCapture(evt.pointerId);
-    pointerInfo.buttons[evt.button] = { down: true, x: evt.pageX, y: evt.pageY };
+    let target = evt.target;
+    if (target instanceof Element) {
+      target.setPointerCapture(evt.pointerId);
+    }
+    pointerData.buttons[evt.button] = { down: true, x: evt.pageX, y: evt.pageY };
   }
 
   /** @param {PointerEvent} evt */
   _handlePointerUp = (evt) => {
     // console.log('up');
-    let pointerInfo = this.stopGetAndUpdate(evt);
-    if (pointerInfo.buttons[evt.button]?.down) {
-      pointerInfo.isDown--;
+    let pointerData = this.stopGetAndUpdate(evt);
+    if (pointerData.buttons[evt.button]?.down) {
+      pointerData.isDown--;
     }
-    // @ts-ignore yes it exists on target which is an element
-    evt.target.releasePointerCapture(evt.pointerId);
-    pointerInfo.buttons[evt.button] = { down: false, x: evt.pageX, y: evt.pageY };
+    let target = evt.target;
+    if (target instanceof Element) {
+      target.releasePointerCapture(evt.pointerId);
+    }
+    pointerData.buttons[evt.button] = { down: false, x: evt.pageX, y: evt.pageY };
   }
 
   /** @param {PointerEvent} evt */
@@ -152,4 +224,31 @@ export class PointerTracker {
   _handlePointerRawUpdate = (evt) => {
     this.stopGetAndUpdate(evt);
   }
+
+  /** @param {TouchList} touchList */
+  handleTouchUpdate(touchList, type) {
+    for (let touch of touchList) {
+      let pointerData = this.getPointerData(touch)
+      this.updatePointerData(pointerData, touch, type);
+    }
+  }
+
+  /** @param {TouchEvent} evt */
+  _handleTouchStart = (evt) => {
+    this.stopEvent(evt);
+    this.handleTouchUpdate(evt.changedTouches,'start');
+  }
+
+  /** @param {TouchEvent} evt */
+  _handleTouchEnd = (evt) => {
+    this.stopEvent(evt);
+    this.handleTouchUpdate(evt.changedTouches,'end');
+  }
+
+  /** @param {TouchEvent} evt */
+  _handleTouchMove = (evt) => {
+    this.stopEvent(evt);
+    this.handleTouchUpdate(evt.touches,'move');
+  }
+
 }
