@@ -22,35 +22,40 @@ class PointerData {
   tiltY = -1;
   twist = -1;
 }
+const defaultOptions = {
+  cancelEvents: true,
+  passive: true
+}
 export class PointerTracker {
 
   /**
    * @param {EventTarget} element
-   * @param {*} options
+   * @param {Partial<typeof defaultOptions>} [options]
    */
-  constructor(element, options = { cancelEvents: true }) {
+  constructor(element, options) {
     this.element = element;
-    this.options = options;
+    this.options = { ...defaultOptions, ...options };
 
     this.lastPrimary = undefined;
 
+    /** @type {AddEventListenerOptions} */
+    const listenOptions = { passive: this.options.passive };
+    const cListenOptions = { ...listenOptions, capture: true };
     /** @type {Record<string,PointerData>} */
     this.pointerData = {}
-    this.element.addEventListener('pointerenter',this._handlePointerEnter);
-    this.element.addEventListener('pointerleave',this._handlePointerLeave);
-    this.element.addEventListener('pointerover',this._handlePointerOver);
-    this.element.addEventListener('pointerout',this._handlePointerOut);
-    this.element.addEventListener('pointerdown',this._handlePointerDown);
-    this.element.addEventListener('pointerup',this._handlePointerUp);
-    this.element.addEventListener('pointermove',this._handlePointerMove);
-    this.element.addEventListener('pointerrawupdate', this._handlePointerRawUpdate);
-
-    this.element.addEventListener('contextmenu',this._handlecontextmenu);
-
-    this.element.addEventListener('touchstart',this._handleTouchStart);
-    this.element.addEventListener('touchend',this._handleTouchEnd);
-    this.element.addEventListener('touchmove',this._handleTouchMove);
-    this.element.addEventListener('touchcancel',this._handleTouchEnd);
+    this.element.addEventListener('pointerenter', this._handlePointerEnter, listenOptions);
+    this.element.addEventListener('pointerleave', this._handlePointerLeave, listenOptions);
+    this.element.addEventListener('pointerover', this._handlePointerOver, listenOptions);
+    this.element.addEventListener('pointerout', this._handlePointerOut, listenOptions);
+    this.element.addEventListener('pointerdown', this._handlePointerDown, cListenOptions);
+    this.element.addEventListener('pointerup', this._handlePointerUp, listenOptions);
+    this.element.addEventListener('pointermove', this._handlePointerMove, listenOptions);
+    this.element.addEventListener('pointerrawupdate', this._handlePointerRawUpdate, listenOptions);
+    this.element.addEventListener('contextmenu', this._handlecontextmenu, listenOptions);
+    this.element.addEventListener('touchstart', this._handleTouchStart, cListenOptions);
+    this.element.addEventListener('touchend', this._handleTouchEnd, listenOptions);
+    this.element.addEventListener('touchmove', this._handleTouchMove, listenOptions);
+    this.element.addEventListener('touchcancel', this._handleTouchEnd, listenOptions);
   }
 
   dispose() {
@@ -58,7 +63,6 @@ export class PointerTracker {
     this.element.removeEventListener('touchend',this._handleTouchEnd);
     this.element.removeEventListener('touchmove',this._handleTouchMove);
     this.element.removeEventListener('touchcancel',this._handleTouchEnd);
-
     this.element.removeEventListener('pointerenter', this._handlePointerEnter);
     this.element.removeEventListener('pointerleave',this._handlePointerLeave);
     this.element.removeEventListener('pointerover',this._handlePointerOver);
@@ -67,7 +71,6 @@ export class PointerTracker {
     this.element.removeEventListener('pointerup',this._handlePointerUp);
     this.element.removeEventListener('pointermove',this._handlePointerMove);
     this.element.removeEventListener('pointerrawupdate',this._handlePointerRawUpdate);
-
     this.element.removeEventListener('contextmenu',this._handlecontextmenu);
   }
 
