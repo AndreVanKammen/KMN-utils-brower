@@ -286,9 +286,10 @@ export class PanZoomBase {
     let mouseY = this.zoomCenterY;
     let oldScaleX = this.xScaleSmooth;
     let oldScaleY = this.yScaleSmooth;
-
-    this.xScaleSmooth = this.xScaleSmooth * factor + n_factor * this.xScale;
-    this.yScaleSmooth = this.yScaleSmooth * factor + n_factor * this.yScale;
+    let sfactor = Math.pow(factor, 0.6);
+    let sn_factor = 1.0 - sfactor;
+    this.xScaleSmooth = this.xScaleSmooth * sfactor + sn_factor * this.xScale;
+    this.yScaleSmooth = this.yScaleSmooth * sfactor + sn_factor * this.yScale;
 
     let scale_dx = mouseX / oldScaleX - mouseX / this.xScaleSmooth;
     let scale_dy = mouseY / oldScaleY - mouseY / this.yScaleSmooth;
