@@ -78,7 +78,10 @@ export class PointerTracker {
   stopEvent(evt) {
     if (this.options.cancelEvents) {
       evt.stopPropagation();
-      evt.preventDefault();
+      // 1st you nag that i must use passive Chrome then you give errors on preventDefault not callable in passive ^&*^&*(&*()%^&
+      if (!this.options.passive) {
+        evt.preventDefault();
+      }
     }
   }
 
