@@ -281,7 +281,6 @@ export class PanZoomBase {
     let n_factor = 1.0 - factor;
     // Ease the currenteasefactor back to the normal easefactor
     this.currentEaseFactor = this.currentEaseFactor * factor + n_factor * this.easeFactor;
-
     let mouseX = this.zoomCenterX;
     let mouseY = this.zoomCenterY;
     let oldScaleX = this.xScaleSmooth;
@@ -569,7 +568,7 @@ export default class PanZoomControl extends PanZoomBase {
   restrictPos() {
     // Don't restrict pos while scaling
     if (Math.abs(this.xScale - this.xScaleSmooth) < (0.01 * this.xScaleSmooth)) {
-      this.zoomCenterX = (0.5 + this.zoomCenterX) * 0.5;
+      // this.zoomCenterX = (0.5 + this.zoomCenterX) * 0.5;
 
       let maxXPos = this.options.maxXPos;
       if (this.options.includeSizeInMaxPos) {
