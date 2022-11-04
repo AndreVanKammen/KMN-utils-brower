@@ -638,17 +638,39 @@ class ChildControlHandler {
       }
       return this.controller.eventHandler(m2, x, y);
     };
-    const eventHandlerDebug = (m1, m2, x, y) => {
-      let childHandlers = this.getChilds(x, y);
-      for (let childHandler of childHandlers) {
-        childHandler.child.event = this.controller.event;
-        if (m1(childHandler.child, childHandler.x, childHandler.y)) {
-          console.log('child handler',childHandler);
-          return true;
+    const showClasses = (x) => {
+      let result = '';
+      for (let y of x) {
+        if (y.dataName) {
+          result += y.constructor.name + '(' + y.dataName + ') ';
+        } else {
+          result += y.constructor.name+ ' ';
         }
       }
-      console.log('main handler',this.controller);
-      return this.controller.eventHandler(m2, x, y, true);
+      return result;
+    }
+    const eventHandlerDebug = (m1, m2, x, y) => {
+      let allHandlers = '';
+      try {
+        let childHandlers = this.getChilds(x, y);
+        for (let childHandler of childHandlers) {
+          childHandler.child.event = this.controller.event;
+          allHandlers += 'child('+(showClasses(childHandler.child?.handlers))+') ';
+          if (m1(childHandler.child, childHandler.x, childHandler.y)) {
+            allHandlers += 'handled';
+            return true;
+          }
+        }
+        allHandlers += 'main('+(showClasses(this.controller?.handlers))+') ';
+        if (this.controller.eventHandler(m2, x, y, true)) {
+          allHandlers += 'handled';
+          return true;
+        }
+        return false;
+      } finally {
+        console.log('handlers: ', allHandlers);
+      }
+
     };
     this.controller.onClick = eventHandler.bind(
       this.controller,
