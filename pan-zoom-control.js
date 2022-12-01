@@ -418,14 +418,21 @@ export default class PanZoomControl extends PanZoomBase {
     this.element.onwheel = (event) => {
       this.event = event;
       event.preventDefault();
-
       let mouseX = event.offsetX / this.element.clientWidth;
       let mouseY = 1.0 - (event.offsetY / this.element.clientHeight);
       let oldScaleX = this.xScale;
       let oldScaleY = this.yScale;
       let deltaY = event.deltaY;
+      let deltaX = event.deltaX;
       if (!deltaY || !isFinite(deltaY)) {
         return;
+      }
+      if (deltaX || !isFinite(deltaX)) {
+        if (!this.haltDragging) {
+          this.xOffset += deltaX /this.element.clientWidth/ this.xScale;
+          this.restrictPos();
+          this.options.onChange();
+        }
       }
       if (event.deltaMode > 0) {
         // Lines
