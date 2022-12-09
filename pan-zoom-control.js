@@ -139,8 +139,8 @@ export class PanZoomBase {
     this.xOffsetSmooth = 0.0;
     this.yOffsetSmooth = 0.0;
 
-    this.easeFactor = 0.7;
-    this.currentEaseFactor = 0.7;
+    this.easeFactor = 0.0; // 0.7;
+    this.currentEaseFactor = 0.0; //0.7;
     this.lastTime = 0.0;
 
     this.isPanning = false;
